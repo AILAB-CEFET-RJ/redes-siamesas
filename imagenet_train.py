@@ -12,8 +12,10 @@ import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import sys
 
 DATA_DIR = "/home/rsilva/datasets"
+#DATA_DIR = "/Volumes/Externo/cefet/dataset/"
 IMAGE_DIR = os.path.join(DATA_DIR, "imagenet")
 
 def imagem_aleatoria(img_groups, group_names, gid):
@@ -21,7 +23,7 @@ def imagem_aleatoria(img_groups, group_names, gid):
     photos = img_groups[gname]
     pid = np.random.choice(np.arange(len(photos)), size=1)[0]
     pname = photos[pid]
-    return "{}_{}.jpg".format(gid, pid)
+    return "{}_{}.jpg".format(gname, pname)
 
 def criar_triplas(image_dir):
     img_groups = {}
@@ -118,7 +120,6 @@ triplas = criar_triplas(IMAGE_DIR)
 
 print("# triplas de imagens:", len(triplas))
 [print(x) for x in triplas[0:5]]
-
 
 TAMANHO_LOTE = 64
 
