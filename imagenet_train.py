@@ -14,9 +14,9 @@ import numpy as np
 import os
 import sys
 
-DATA_DIR = "/home/rsilva/datasets"
-#DATA_DIR = "/Volumes/Externo/cefet/dataset/"
-IMAGE_DIR = os.path.join(DATA_DIR, "imagenet")
+#DATA_DIR = "/home/rsilva/datasets"
+DATA_DIR = "/Volumes/Externo/cefet/dataset/"
+IMAGE_DIR = os.path.join(DATA_DIR, "teste")
 
 def imagem_aleatoria(img_groups, group_names, gid):
     gname = group_names[gid]
@@ -125,7 +125,6 @@ TAMANHO_LOTE = 64
 
 divisor = int(len(triplas) * 0.7)
 dados_treino, dados_teste = triplas[0:divisor], triplas[divisor:]
-
 
 ################### Processamento das Imagens ##################
 
