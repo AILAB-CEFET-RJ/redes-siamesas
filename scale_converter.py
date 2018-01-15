@@ -12,9 +12,5 @@ NEW_IMAGE_DIR = os.path.join(DATA_DIR, "convertido")
 
 for img_file in os.listdir(IMAGE_DIR):        
     im = Image.open( os.path.join(IMAGE_DIR,img_file))
-    if(len(im.shape)<3):
-        try:
-            print(img_file, "is greyscale")
-            im.convert('RGB').save(img_file)
-        except:
-            print("Deu merda")
+    im.convert('RGB').save(img_file)
+    
