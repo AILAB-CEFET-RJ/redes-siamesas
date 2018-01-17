@@ -14,6 +14,8 @@ import numpy as np
 import os
 import sys
 
+
+
 DATA_DIR = "/home/rsilva/datasets"
 #DATA_DIR = "/Volumes/Externo/cefet/dataset/"
 IMAGE_DIR = os.path.join(DATA_DIR, "convertido")
@@ -134,10 +136,12 @@ rede_neural = criar_instancia_rede_neural(formato_entrada)
 imagem_esquerda = Input(shape=formato_entrada)
 imagem_direita  = Input(shape=formato_entrada)
 
-vetor_saida_esquerda = rede_neural(imagem_esquerda)
-vetor_saida_direita  = rede_neural(imagem_direita)
-
-distancia = Lambda(calcular_distancia, 
+with K.tf.device('/gpu:0'):
+	vetor_saida_esquerda = rede_neural(imagem_esquerda)
+with K.tf.device('/gpu:1'):
+	vetor_saida_direita  = rede_neural(imagem_direita)
+with K.tf.device('/cpu:0'):
+	distancia = Lambda(calcular_distancia, 
                   output_shape=formato_saida_distancia)([vetor_saida_esquerda, vetor_saida_direita])
 
 ############# Computando os vetorese de similaridade #############
