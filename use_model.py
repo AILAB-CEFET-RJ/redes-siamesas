@@ -29,10 +29,15 @@ with K.tf.device("/gpu:1"):
   print("Loaded model from disk")
   loaded_model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
+  original_image = plt.imread(os.path.join(IMAGE_DIR, "train2014/COCO_train2014_000000025162.jpg")).astype(np.float32)
+  original_image = imresize(original_image, (224,224))
+  original_image = np.divide(original_image, 256)
+
   image = plt.imread(os.path.join(IMAGE_DIR, "train2014/COCO_train2014_000000025162.jpg")).astype(np.float32)
   image = imresize(image, (224, 224))
   image = np.divide(image, 256)
+ 
 
-  pred = loaded_model.predict(image, batch_size=1, verbose=1)
+  pred = loaded_model.predict([original_image, image], batch_size=1, verbose=1)
   print(pred)
 
