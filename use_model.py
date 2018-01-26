@@ -8,6 +8,8 @@ from scipy.misc import imresize
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+from keras.layers import Input
+from keras.preprocessing.image import img_to_array, load_img
 
 
 DATA_DIR = "/home/rsilva/datasets"
@@ -32,11 +34,17 @@ loaded_model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['
 original_image = plt.imread(os.path.join(IMAGE_DIR, "train2014/COCO_train2014_000000025162.jpg")).astype(np.float32)
 original_image = imresize(original_image, (224,224))
 original_image = np.divide(original_image, 256)
+original_image =  np.expand_dims(original_image, axis=0)
+
 
 image = plt.imread(os.path.join(IMAGE_DIR, "train2014/COCO_train2014_000000025162.jpg")).astype(np.float32)
 image = imresize(image, (224, 224))
 image = np.divide(image, 256)
+image =  np.expand_dims(image, axis=0)
 
-pred = loaded_model.predict([original_image, image], batch_size=1, verbose=1)
+input_images = [original_image, image]
+
+
+pred = loaded_model.predict(input_images ,batch_size=1, verbose=1)
 print(pred)
 

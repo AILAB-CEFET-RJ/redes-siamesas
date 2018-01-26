@@ -1,6 +1,6 @@
 import os
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-#os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 from keras import backend as K
 from keras.applications import vgg16
@@ -153,6 +153,11 @@ pred = Dense(2, kernel_initializer="glorot_uniform")(fc1)
 pred = Activation("softmax")(pred)
 model = Model(inputs=[imagem_esquerda, imagem_direita], outputs=pred)
 #model.summary()
+
+print([imagem_esquerda, imagem_direita])
+
+
+"""
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
 NUM_EPOCAS = 10
@@ -180,4 +185,4 @@ with K.tf.device("/gpu:1"):
   # serialize weights to HDF5
   model.save_weights("models/imagenet_weights.h5")
   print("Modelo salvo")
-
+"""
