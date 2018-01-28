@@ -13,6 +13,6 @@ i = 0
 for img_file in os.listdir(IMAGE_DIR):        
     im = Image.open( os.path.join(IMAGE_DIR,img_file))
     im.convert('RGB').save(os.path.join(NEW_IMAGE_DIR, img_file))
-    i = i +1
+    i = i + 1
     if( i % 1000 == 0):
         print(i, "imagens convertidas")

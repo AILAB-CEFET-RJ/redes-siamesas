@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sys
+from sklearn.utils import shuffle
 
 DATA_DIR = "/home/ramon/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
@@ -50,7 +51,7 @@ def criar_triplas(image_dir):
                     triplas.append((row["filename"], _r["filename"], 1))
                 else:
                     triplas.append((row["filename"], _r["filename"], 0))
-    return triplas
+    return shuffle(triplas)
 
 def carregar_imagem(image_name):
     if image_name not in image_cache:

@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
 import os
+from sklearn.utils import shuffle
 
 DATA_DIR = "/home/ramon/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"vqa2017")
 
 data = pd.read_csv(os.path.join(DATA_DIR, 'train2014_500.csv'), sep=",", header=1, names=["img_id", "category_id", "filename"])  
-print(data.head(5))
-"""
+#print(data.head(5))
+
 image_cache = {}
 for index, row in data.iterrows():
     id = row["img_id"]
@@ -28,4 +29,6 @@ for index, row in image_cache.items():
                 triplas.append((row["filename"], _r["filename"], 0))
     
 
-[print(x) for x in triplas[0:5]]"""
+triplas = shuffle(triplas, random_state=7)
+
+[print(x) for x in triplas[0:20]]
