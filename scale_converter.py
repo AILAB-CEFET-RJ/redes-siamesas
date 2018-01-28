@@ -5,7 +5,7 @@ import cv2
 from PIL import Image
 
 
-DATA_DIR = "/home/ramon/datasets/vqa/"
+DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR, "train2014")
 NEW_IMAGE_DIR = os.path.join(DATA_DIR, "mscoco")
 
