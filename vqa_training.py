@@ -1,6 +1,6 @@
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+#os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 from keras import backend as K
 from keras.applications import vgg16
@@ -15,44 +15,42 @@ from scipy.misc import imresize
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import sys
 
-DATA_DIR = "/home/rsilva/datasets"
-#DATA_DIR = "/Volumes/Externo/cefet/dataset/"
-IMAGE_DIR = os.path.join(DATA_DIR, "convertido")
+DATA_DIR = "/home/ramon/datasets/vqa/"
+IMAGE_DIR = os.path.join(DATA_DIR,"vqa2017")
 
 def imagem_aleatoria(img_groups, group_names, gid):
     gname = group_names[gid]
     photos = img_groups[gname]
     pid = np.random.choice(np.arange(len(photos)), size=1)[0]
     pname = photos[pid]
-    return "{}_{}.jpg".format(gname, pname)
+    #return "{}_{}.jpg".format(gname, pname)
+    return pname
 
 def criar_triplas(image_dir):
-    img_groups = {}
-    for img_file in os.listdir(image_dir):
-        prefix, suffix = img_file.split(".")
-        gid, pid = prefix.split("_")        
-        if gid in img_groups :
-            img_groups[gid].append(pid)
+    data = pd.read_csv(os.path.join(DATA_DIR, 'train2014_categories.csv'), sep=",", header=1, names=["img_id", "category_id", "filename"])
+    image_cache = {}
+    for index, row in data.iterrows():
+        id = row["img_id"]
+        if(id in image_cache):
+            image_cache[id]["categories"].append(row["category_id"])
         else:
-            img_groups[gid] = [pid]
-    pos_triples, neg_triples = [], []
-    # positive pairs are any combination of images in same group
-    for key in img_groups.keys():
-        triples = [(key + "_" + x[0] + ".jpg", key + "_" + x[1] + ".jpg", 1) 
-                 for x in itertools.combinations(img_groups[key], 2)]
-        pos_triples.extend(triples)
-    # need equal number of negative examples
-    group_names = list(img_groups.keys())
-    for i in range(len(pos_triples)):
-        g1, g2 = np.random.choice(np.arange(len(group_names)), size=2, replace=False)
-        left = imagem_aleatoria(img_groups, group_names, g1)
-        right = imagem_aleatoria(img_groups, group_names, g2)
-        neg_triples.append((left, right, 0))
-    pos_triples.extend(neg_triples)
-    shuffle(pos_triples)
-    return pos_triples
+            image_cache[id] = {"img_id" : id, "filename" : row["filename"], "categories" : [row["category_id"]]}
+    #Triplas que serao retornadas
+    triplas = []
+
+    for index, row in image_cache.items():
+        for _i, _r in image_cache.items():
+            if index != _i:
+                _match = set(row["categories"]).intersection(_r["categories"])
+                if len(_match) > 0:
+                    #print(row["filename"], _r["filename"], "similares")
+                    triplas.append((row["filename"], _r["filename"], 1))
+                else:
+                    triplas.append((row["filename"], _r["filename"], 0))
+    return triplas
 
 def carregar_imagem(image_name):
     if image_name not in image_cache:
@@ -119,10 +117,14 @@ def criar_instancia_rede_neural(entrada):
 
 ####################### Inicio da Execucao #######################
 
+print("####################### Inicio da Execucao #######################")
+
+print("Geran")
 triplas = criar_triplas(IMAGE_DIR)
 
 print("# triplas de imagens:", len(triplas))
 [print(x) for x in triplas[0:5]]
+
 
 TAMANHO_LOTE = 64
 
@@ -141,7 +143,7 @@ vetor_saida_esquerda = rede_neural(imagem_esquerda)
 vetor_saida_direita  = rede_neural(imagem_direita)
 
 distancia = Lambda(calcular_distancia, 
-                  output_shape=formato_saida_distancia)([vetor_saida_esquerda, vetor_saida_direita])
+            gerando triplas      output_shape=formato_saida_distancia)([vetor_saida_esquerda, vetor_saida_direita])
 
 ############# Computando os vetorese de similaridade #############
 
@@ -164,20 +166,19 @@ lote_de_validacao = gerar_triplas_em_lote(dados_teste, TAMANHO_LOTE, shuffle=Fal
 num_passos_treinamento = len(dados_treino) // NUM_EPOCAS
 num_passos_validacao = len(dados_teste) // NUM_EPOCAS
 
-with K.tf.device("/gpu:1"):
-  historico = model.fit_generator(lote_de_treinamento,
-                              steps_per_epoch=num_passos_treinamento,
-                              epochs=NUM_EPOCAS,
-                              validation_data=lote_de_validacao,
-                              validation_steps=num_passos_validacao)
+historico = model.fit_generator(lote_de_treinamento,
+                            steps_per_epoch=num_passos_treinamento,
+                            epochs=NUM_EPOCAS,
+                            validation_data=lote_de_validacao,
+                            validation_steps=num_passos_validacao)
 
-  print("Salvando o modelo em disco")
-  # serialize model to JSON
-  model_json = model.to_json()
-  with open("models/imagenet.json", "w") as json_file:
-      json_file.write(model_json)
+print("Salvando o modelo em disco")
+# serialize model to JSON
+model_json = model.to_json()
+with open("models/imagenet.json", "w") as json_file:
+    json_file.write(model_json)
 
-  # serialize weights to HDF5
-  model.save_weights("models/imagenet_weights.h5")
-  print("Modelo salvo")
-
+# serialize weights to HDF5
+model.save_weights("models/imagenet_weights.h5")
+print("Modelo salvo")
+"""
