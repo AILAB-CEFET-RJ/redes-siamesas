@@ -27,6 +27,7 @@ cnx = mysql.connector.connect(user='root', password='secret',
 cursor = cnx.cursor()
 
 tam = len(data["annotations"])
+image_cache = {}
 
 for i in range(0, tam):
     im = data["annotations"][i]
@@ -37,16 +38,16 @@ for i in range(0, tam):
 
     img_id = im["image_id"]
 
-    cache = []
-
+    
     if( os.path.isfile(filepath) ):
-        if img_id not in cache:
+        if img_id not in image_cache:
             insert_category(str(im["id"]), str(im["image_id"]), str(im["category_id"]), filename)
-            cache.append(img_id)
+            image_cache[img_id] = im
     else:
         print(filepath, "not exists")
-    if(i % 100000 == 0):
+    if(i % 10000 == 0 and i > 0):
         print(i, "/", tam)
+        
  
 cnx.commit()
 cursor.close()

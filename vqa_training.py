@@ -19,7 +19,7 @@ import pandas as pd
 import sys
 
 DATA_DIR = "/home/ramon/datasets/vqa/"
-IMAGE_DIR = os.path.join(DATA_DIR,"vqa2017")
+IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 
 def imagem_aleatoria(img_groups, group_names, gid):
     gname = group_names[gid]
@@ -30,7 +30,7 @@ def imagem_aleatoria(img_groups, group_names, gid):
     return pname
 
 def criar_triplas(image_dir):
-    data = pd.read_csv(os.path.join(DATA_DIR, 'train2014_categories.csv'), sep=",", header=1, names=["img_id", "category_id", "filename"])
+    data = pd.read_csv(os.path.join(DATA_DIR, 'train2014_500.csv'), sep=",", header=1, names=["img_id", "category_id", "filename"])
     image_cache = {}
     for index, row in data.iterrows():
         id = row["img_id"]
@@ -143,7 +143,7 @@ vetor_saida_esquerda = rede_neural(imagem_esquerda)
 vetor_saida_direita  = rede_neural(imagem_direita)
 
 distancia = Lambda(calcular_distancia, 
-            gerando triplas      output_shape=formato_saida_distancia)([vetor_saida_esquerda, vetor_saida_direita])
+                output_shape=formato_saida_distancia)([vetor_saida_esquerda, vetor_saida_direita])
 
 ############# Computando os vetorese de similaridade #############
 
@@ -181,4 +181,3 @@ with open("models/imagenet.json", "w") as json_file:
 # serialize weights to HDF5
 model.save_weights("models/imagenet_weights.h5")
 print("Modelo salvo")
-"""
