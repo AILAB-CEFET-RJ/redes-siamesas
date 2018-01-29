@@ -1,8 +1,8 @@
 import os
 
 ### Usar quando as placas de video estiverem ocupadas com outros processos
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-#os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 from scipy.misc import imresize
 from keras.applications import resnet50
@@ -31,7 +31,7 @@ def vectorize_images(image_dir, image_size, preprocessor,
                      model, vector_file, batch_size=32):
     image_names = os.listdir(image_dir)
     num_vecs = 0
-    fvec = open(vector_file, "wb")
+    fvec = open(vector_file, "w")
     for image_batch in image_batch_generator(image_names, batch_size):
         batched_images = []
         for image_name in image_batch:
@@ -58,8 +58,8 @@ IMAGE_SIZE = 224
 VECTOR_FILE = os.path.join(DATA_DIR, "resnet-vectors.tsv")
 
 resnet_model = resnet50.ResNet50(weights="imagenet", include_top=True)
-model = Model(input=resnet_model.input,
-             output=resnet_model.get_layer("flatten_1").output)
+model = Model(inputs=resnet_model.input,
+             outputs=resnet_model.get_layer("flatten_1").output)
 preprocessor = resnet50.preprocess_input
 
 vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
