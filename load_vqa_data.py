@@ -2,7 +2,7 @@ import json
 import mysql.connector
 import os
 
-DATA_DIR = "/home/ramon/datasets/vqa/"
+DATA_DIR = "/home/rsilva/Projects/cefet/dataset/vqa/"
 ANNOTATION_DIR = os.path.join(DATA_DIR, "annotations/")
 IMAGE_DIR = os.path.join(DATA_DIR,"train2014")
 
