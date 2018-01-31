@@ -38,6 +38,11 @@ def image_batch_generator(image_names, batch_size):
 ######################################################################
 def vectorize_images(image_dir, image_size, preprocessor, 
                      model, vector_file, batch_size=32):
+    
+    if( os.path.isfile(vector_file) ):
+        print(vector_file, "already exists !!!")
+        return
+    
     image_names = os.listdir(image_dir)
     num_vecs = 0
     fvec = open(vector_file, "w")
