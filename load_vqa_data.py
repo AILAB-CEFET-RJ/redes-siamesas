@@ -38,13 +38,17 @@ for i in range(0, tam):
 
     img_id = im["image_id"]
 
-    
+    """
     if( os.path.isfile(filepath) ):
         if img_id not in image_cache:
             insert_category(str(im["id"]), str(im["image_id"]), str(im["category_id"]), filename)
             image_cache[img_id] = im
     else:
         print(filepath, "not exists")
+
+    """    
+    insert_category(str(im["id"]), str(im["image_id"]), str(im["category_id"]), filename)
+    
     if(i % 10000 == 0 and i > 0):
         print(i, "/", tam)
         
