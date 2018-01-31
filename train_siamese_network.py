@@ -19,7 +19,7 @@ from sklearn.svm import LinearSVC
 from xgboost import XGBClassifier
 import itertools
 import pandas as pd
-
+from sklearn.utils import shuffle
 
 DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
@@ -173,7 +173,7 @@ vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
 #                       Inicio da Execucao                      #
 #################################################################
 
-lista_imagens = os.path.join(DATA_DIR, 'train2014_500.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
 
 NUM_VECTORIZERS = 5
