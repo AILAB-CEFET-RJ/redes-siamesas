@@ -5,7 +5,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 from scipy.misc import imresize
-from keras.applications import xception
+from keras.applications import inception_v3, xception
 from keras.models import Model
 import matplotlib.pyplot as plt
 import numpy as np
