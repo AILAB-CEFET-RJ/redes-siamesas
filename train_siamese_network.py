@@ -163,8 +163,8 @@ VECTOR_FILE = os.path.join(DATA_DIR, "resnet-vectors.tsv")
 
 resnet_model = resnet50.ResNet50(weights="imagenet", include_top=True)
 
-model = Model(input=resnet_model.input,
-             output=resnet_model.get_layer("flatten_1").output)
+model = Model(inputs=resnet_model.input,
+             outputs=resnet_model.get_layer("flatten_1").output)
 preprocessor = resnet50.preprocess_input
 
 vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
