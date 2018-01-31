@@ -1,8 +1,8 @@
 import os
 
 ### Usar quando as placas de video estiverem ocupadas com outros processos
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+#os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
 from scipy.misc import imresize
 from keras.applications import resnet50, xception
@@ -18,10 +18,10 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 from sklearn.svm import LinearSVC
 from xgboost import XGBClassifier
 import itertools
+import pandas as pd
 
 
-
-DATA_DIR = "/home/ramon/datasets/vqa/"
+DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 MODEL_DIR = os.path.join(DATA_DIR,"models")
 
