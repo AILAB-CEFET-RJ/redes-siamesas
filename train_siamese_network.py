@@ -2,10 +2,10 @@ import os
 
 ### Usar quando as placas de video estiverem ocupadas com outros processos
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
 from scipy.misc import imresize
-from keras.applications import inception_v3, xception
+from keras.applications import resnet50, xception
 from keras.models import Model
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,6 +23,7 @@ import itertools
 
 DATA_DIR = "/home/ramon/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
+MODEL_DIR = os.path.join(DATA_DIR,"models")
 
 #####################################################################
 def image_batch_generator(image_names, batch_size):
@@ -86,7 +87,7 @@ def criar_triplas(image_dir, lista_imagens):
     return shuffle(triplas)
 
 #################################################################
-#                   Load Vectors from Inception V3              #
+#                          Load Vectors                         #
 #################################################################
 
 def carregar_vetores(vector_file):
@@ -155,16 +156,16 @@ def save_model(model, model_file):
     joblib.dump(model, model_file)
 
 #################################################################
-#               Generate Vectors using Inception V3             #
+#                          Generate Vectors                     #
 #################################################################
+IMAGE_SIZE = 224
+VECTOR_FILE = os.path.join(DATA_DIR, "resnet-vectors.tsv")
 
-IMAGE_SIZE = 299
-VECTOR_FILE = os.path.join(DATA_DIR, "inception-vectors.tsv")
-inception_model = inception_v3.InceptionV3(weights="imagenet", include_top=True)
+resnet_model = resnet50.ResNet50(weights="imagenet", include_top=True)
 
-model = Model(input=inception_model.input,
-             output=inception_model.get_layer("flatten").output)
-preprocessor = inception_v3.preprocess_input
+model = Model(input=resnet_model.input,
+             output=resnet_model.get_layer("flatten_1").output)
+preprocessor = resnet50.preprocess_input
 
 vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
 
@@ -187,6 +188,6 @@ print(Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
 #################################################################
 clf = XGBClassifier()
 best_clf, best_score = cross_validate(Xtrain, ytrain, clf)
-scores[2, 2] = best_score
+scores[3, 2] = best_score
 test_report(best_clf, Xtest, ytest)
-save_model(best_clf, get_model_file(DATA_DIR, "inceptionv3", "xgb"))
+save_model(best_clf, get_model_file(MODEL_DIR, "resnet50", "xgb"))
