@@ -38,6 +38,11 @@ def image_batch_generator(image_names, batch_size):
 ######################################################################
 def vectorize_images(image_dir, image_size, preprocessor, 
                      model, vector_file, batch_size=32):
+    
+    if( os.path.isfile(vector_file) ):
+        print(vector_file, "already exists !!!")
+        return
+    
     image_names = os.listdir(image_dir)
     num_vecs = 0
     fvec = open(vector_file, "w")
@@ -163,8 +168,8 @@ VECTOR_FILE = os.path.join(DATA_DIR, "resnet-vectors.tsv")
 
 resnet_model = resnet50.ResNet50(weights="imagenet", include_top=True)
 
-model = Model(input=resnet_model.input,
-             output=resnet_model.get_layer("flatten_1").output)
+model = Model(inputs=resnet_model.input,
+             outputs=resnet_model.get_layer("flatten_1").output)
 preprocessor = resnet50.preprocess_input
 
 vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
