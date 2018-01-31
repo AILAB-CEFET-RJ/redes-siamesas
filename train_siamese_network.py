@@ -106,11 +106,11 @@ def carregar_vetores(vector_file):
 
 def preprocessar_dados(vector_file, train_size=0.7):
     xdata, ydata = [], []
-    vec_dict = load_vectors(vector_file)
+    vec_dict = carregar_vetores(vector_file)
     for image_triple in image_triples:
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]
-        xdata.append(np.multiply(X1, X2) / (np.linalg.norm(X1, 2) * np.linalg.norm(X2, 2)))
+        xdata.append(np.power(np.subtract(X1, X2), 2))
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
