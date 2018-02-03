@@ -1,8 +1,8 @@
 import os
 
 ### Usar quando as placas de video estiverem ocupadas com outros processos
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-#os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 from scipy.misc import imresize
 from keras.applications import resnet50, xception
@@ -21,11 +21,16 @@ import itertools
 import pandas as pd
 from sklearn.utils import shuffle
 
+np.random.seed(7)
+
+
 DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 MODEL_DIR = os.path.join(DATA_DIR,"models")
 
-#####################################################################
+#################################################################
+#               Gerando lotes para treinamento                  #
+#################################################################
 def image_batch_generator(image_names, batch_size):
     num_batches = len(image_names) // batch_size
     for i in range(num_batches):
@@ -35,7 +40,10 @@ def image_batch_generator(image_names, batch_size):
     yield batch
 
 
-######################################################################
+#################################################################
+#                       Vetorizando Imagens                     #
+#################################################################
+
 def vectorize_images(image_dir, image_size, preprocessor, 
                      model, vector_file, batch_size=32):
     
@@ -97,7 +105,7 @@ def criar_triplas(image_dir, lista_imagens):
 
 def carregar_vetores(vector_file):
     vec_dict = {}
-    fvec = open(vector_file, "rb")
+    fvec = open(vector_file, "r")
     for line in fvec:
         image_name, image_vec = line.strip().split("\t")
         vec = np.array([float(v) for v in image_vec.split(",")])
@@ -112,14 +120,24 @@ def carregar_vetores(vector_file):
 def preprocessar_dados(vector_file, train_size=0.7):
     xdata, ydata = [], []
     vec_dict = carregar_vetores(vector_file)
+
+    print("##########################################################")
+    key, value = vec_dict.popitem()
+    print(key, value)
+    print("##########################################################")
+    key2, valeu2 = image_triples.popitem()
+    print(key2, value2)
+"""
+
     for image_triple in image_triples:
+        print("Image triple", image_triple)
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]
         xdata.append(np.power(np.subtract(X1, X2), 2))
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
-    return Xtrain, Xtest, ytrain, ytest
+    return Xtrain, Xtest, ytrain, ytest"""
 
 #################################################################
 #                       validação cruzada                       #
@@ -178,15 +196,19 @@ vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
 #                       Inicio da Execucao                      #
 #################################################################
 
-lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014_50.csv')
+print("Criando triplas")
 image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
+print("Pronto !!!")
 
 NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
-Xtrain, Xtest, ytrain, ytest = preprocess_data(VECTOR_FILE)
+print("Pré-processando dados")
+Xtrain, Xtest, ytrain, ytest = preprocessar_dados(VECTOR_FILE)
 print(Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
+print("Pronto !!!")
 
 #################################################################
 #                         Classificador                         #
