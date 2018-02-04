@@ -77,14 +77,14 @@ def vectorize_images(image_dir, image_size, preprocessor,
 #################################################################
 
 def criar_triplas(image_dir, lista_imagens):
-    data = pd.read_csv(lista_imagens, sep=",", header=1, names=["img_id", "category_id", "filename"])
+    data = pd.read_csv(lista_imagens, sep=",", header=1, names=["image_id","filename","category_id"])
     image_cache = {}
     for index, row in data.iterrows():
-        id = row["img_id"]
+        id = row["filename"]
         if(id in image_cache):
             image_cache[id]["categories"].append(row["category_id"])
         else:
-            image_cache[id] = {"img_id" : id, "filename" : row["filename"], "categories" : [row["category_id"]]}
+            image_cache[id] = {"image_id" : id, "filename" : row["filename"], "categories" : [row["category_id"]]}
     #Triplas que serao retornadas
     triplas = []
 
@@ -93,7 +93,6 @@ def criar_triplas(image_dir, lista_imagens):
             if index != _i:
                 _match = set(row["categories"]).intersection(_r["categories"])
                 if len(_match) > 0:
-                    #print(row["filename"], _r["filename"], "similares")
                     triplas.append((row["filename"], _r["filename"], 1))
                 else:
                     triplas.append((row["filename"], _r["filename"], 0))
@@ -121,23 +120,14 @@ def preprocessar_dados(vector_file, train_size=0.7):
     xdata, ydata = [], []
     vec_dict = carregar_vetores(vector_file)
 
-    print("##########################################################")
-    key, value = vec_dict.popitem()
-    print(key, value)
-    print("##########################################################")
-    key2, valeu2 = image_triples.popitem()
-    print(key2, value2)
-"""
-
     for image_triple in image_triples:
-        print("Image triple", image_triple)
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]
         xdata.append(np.power(np.subtract(X1, X2), 2))
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
-    return Xtrain, Xtest, ytrain, ytest"""
+    return Xtrain, Xtest, ytrain, ytest
 
 #################################################################
 #                       validação cruzada                       #
@@ -218,3 +208,4 @@ best_clf, best_score = cross_validate(Xtrain, ytrain, clf)
 scores[3, 2] = best_score
 test_report(best_clf, Xtest, ytest)
 save_model(best_clf, get_model_file(MODEL_DIR, "resnet50", "xgb"))
+
