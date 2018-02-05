@@ -41,7 +41,6 @@ def image_batch_generator(image_names, batch_size):
 #################################################################
 #                       Vetorizando Imagens                     #
 #################################################################
-
 def vectorize_images(image_dir, image_size, preprocessor, 
                      model, vector_file, batch_size=32):
     
@@ -74,7 +73,7 @@ def vectorize_images(image_dir, image_size, preprocessor,
 #                         Generate Triples                      #
 #################################################################
 
-def criar_triplas(image_dir, lista_imagens):
+def criar_triplas(image_dir, lista_imagens):        
     data = pd.read_csv(lista_imagens, sep=",", header=1, names=["image_id","filename","category_id"])
     image_cache = {}
     for index, row in data.iterrows():
@@ -94,6 +93,8 @@ def criar_triplas(image_dir, lista_imagens):
                     triplas.append((row["filename"], _r["filename"], 1))
                 else:
                     triplas.append((row["filename"], _r["filename"], 0))
+    
+    free_memory(image_cache)
     return shuffle(triplas)
 
 #################################################################
