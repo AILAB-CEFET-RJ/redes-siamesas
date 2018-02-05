@@ -208,4 +208,4 @@ best_clf, best_score = cross_validate(Xtrain, ytrain, clf)
 scores[3, 2] = best_score
 test_report(best_clf, Xtest, ytest)
 save_model(best_clf, get_model_file(MODEL_DIR, "resnet50", "xgb"))
-
+print("Fim !!!")
