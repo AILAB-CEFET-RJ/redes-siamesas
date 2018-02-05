@@ -23,7 +23,8 @@ from sklearn.utils import shuffle
 
 np.random.seed(7)
 
-DATA_DIR = "/home/rsilva/datasets/vqa/"
+DATA_DIR = "/home/rsilva/Projects/cefet/dataset/vqa"
+#DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 
 #################################################################
@@ -52,7 +53,7 @@ def vectorize_images(image_dir, image_size, preprocessor,
     num_vecs = 0
     fvec = open(vector_file, "w")
     for image_batch in image_batch_generator(image_names, batch_size):
-        batched_images = []
+        batched_images = np.empty([1,])
         for image_name in image_batch:
             image = plt.imread(os.path.join(image_dir, image_name))
             image = imresize(image, (image_size, image_size))
@@ -83,7 +84,7 @@ def criar_triplas(image_dir, lista_imagens):
         else:
             image_cache[id] = {"image_id" : id, "filename" : row["filename"], "categories" : [row["category_id"]]}
     #Triplas que serao retornadas
-    triplas = []
+    triplas = np.empty([1,])
 
     for index, row in image_cache.items():
         for _i, _r in image_cache.items():
@@ -102,12 +103,12 @@ def criar_triplas(image_dir, lista_imagens):
 #################################################################
 
 def carregar_vetores(vector_file):
-    vec_dict = {}
+    vec_dict = np.array([,2])
     fvec = open(vector_file, "r")
     for line in fvec:
         image_name, image_vec = line.strip().split("\t")
         vec = np.array([float(v) for v in image_vec.split(",")])
-        vec_dict[image_name] = vec
+        vec_dict.append( image_name : vec )
     fvec.close()
     return vec_dict
 
@@ -116,7 +117,7 @@ def carregar_vetores(vector_file):
 #################################################################
 
 def preprocessar_dados(vector_file, train_size=0.7):
-    xdata, ydata = [], []
+    xdata, ydata = np.empty([1,]), np.empty([1,])
     vec_dict = carregar_vetores(vector_file)
 
     for image_triple in image_triples:
@@ -126,10 +127,6 @@ def preprocessar_dados(vector_file, train_size=0.7):
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
-    
-    free_memory(xdata)
-    free_memory(ydata)
-    free_memory(vec_dict)
     
     return Xtrain, Xtest, ytrain, ytest
 
@@ -173,14 +170,6 @@ def save_model(model, model_file):
     joblib.dump(model, model_file)
 
 #################################################################
-#                         release memory                        #
-#################################################################
-def free_memory(a)
-    if isinstance(a, list): 
-        del a[:]
-    del a
-
-#################################################################
 #                          Generate Vectors                     #
 #################################################################
 IMAGE_SIZE = 224
@@ -202,9 +191,6 @@ lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 print("Criando triplas")
 image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
 print("Pronto !!!")
-
-free_memory(lista_imagens)
-free_memory(image_triples)
 
 NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
