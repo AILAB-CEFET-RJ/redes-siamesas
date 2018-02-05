@@ -26,7 +26,6 @@ np.random.seed(7)
 
 DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
-MODEL_DIR = os.path.join(DATA_DIR,"models")
 
 #################################################################
 #               Gerando lotes para treinamento                  #
@@ -186,7 +185,7 @@ vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
 #                       Inicio da Execucao                      #
 #################################################################
 
-lista_imagens = os.path.join(DATA_DIR, 'train_2014_50.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 print("Criando triplas")
 image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
 print("Pronto !!!")
@@ -204,8 +203,8 @@ print("Pronto !!!")
 #                         Classificador                         #
 #################################################################
 clf = XGBClassifier()
-best_clf, best_score = cross_validate(Xtrain, ytrain, clf)
+best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf)
 scores[3, 2] = best_score
 test_report(best_clf, Xtest, ytest)
-save_model(best_clf, get_model_file(MODEL_DIR, "resnet50", "xgb"))
+save_model(best_clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
 

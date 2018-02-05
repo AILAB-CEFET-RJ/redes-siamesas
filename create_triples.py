@@ -7,7 +7,7 @@ from sklearn.utils import shuffle
 
 np.random.seed(7)
 
-DATA_DIR = "data/"
+DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 MODEL_DIR = os.path.join(DATA_DIR,"models")
 
@@ -47,7 +47,7 @@ def salvar_triplas(triplas):
 #################################################################
 
 
-lista_imagens = os.path.join(DATA_DIR, 'train_10.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 print("Criando triplas")
 image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
 print("Pronto !!!")
