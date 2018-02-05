@@ -76,39 +76,21 @@ def vectorize_images(image_dir, image_size, preprocessor,
 
 def criar_triplas(image_dir, lista_imagens):        
     data = pd.read_csv(lista_imagens, sep=",", header=1, names=["image_id","filename","category_id"])
-    image_cache = {}
-    for index, row in data.iterrows():
-        id = row["filename"]
-        if(id in image_cache):
-            image_cache[id]["categories"].append(row["category_id"])
-        else:
-            image_cache[id] = {"image_id" : id, "filename" : row["filename"], "categories" : [row["category_id"]]}
-    #Triplas que serao retornadas
-    triplas = np.empty([1,])
-
-    for index, row in image_cache.items():
-        for _i, _r in image_cache.items():
-            if index != _i:
-                _match = set(row["categories"]).intersection(_r["categories"])
-                if len(_match) > 0:
-                    triplas.append((row["filename"], _r["filename"], 1))
-                else:
-                    triplas.append((row["filename"], _r["filename"], 0))
     
-    free_memory(image_cache)
-    return shuffle(triplas)
+    triplas = [(x[0], x[1], 1) for x in itertools.combinations(img_groups[key], 2)]
+    return triplas
 
 #################################################################
 #                          Load Vectors                         #
 #################################################################
 
 def carregar_vetores(vector_file):
-    vec_dict = np.array([,2])
+    vec_dict = np.array([2,], dtype=['image_name', 'vector'])
     fvec = open(vector_file, "r")
     for line in fvec:
         image_name, image_vec = line.strip().split("\t")
         vec = np.array([float(v) for v in image_vec.split(",")])
-        vec_dict.append( image_name : vec )
+        vec_dict.append([image_name,  vec])
     fvec.close()
     return vec_dict
 
@@ -192,6 +174,9 @@ print("Criando triplas")
 image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
 print("Pronto !!!")
 
+print(image_triples)
+
+"""
 NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
@@ -211,3 +196,4 @@ test_report(best_clf, Xtest, ytest)
 save_model(best_clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
 
 print("Finalizado com sucesso !!!")
+"""
