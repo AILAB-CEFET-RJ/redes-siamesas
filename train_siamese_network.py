@@ -23,7 +23,6 @@ from sklearn.utils import shuffle
 
 np.random.seed(7)
 
-
 DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 
@@ -126,6 +125,11 @@ def preprocessar_dados(vector_file, train_size=0.7):
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
+    
+    free_memory(xdata)
+    free_memory(ydata)
+    free_memory(vec_dict)
+    
     return Xtrain, Xtest, ytrain, ytest
 
 #################################################################
@@ -168,6 +172,14 @@ def save_model(model, model_file):
     joblib.dump(model, model_file)
 
 #################################################################
+#                         release memory                        #
+#################################################################
+def free_memory(a)
+    if isinstance(a, list): 
+        del a[:]
+    del a
+
+#################################################################
 #                          Generate Vectors                     #
 #################################################################
 IMAGE_SIZE = 224
@@ -190,6 +202,9 @@ print("Criando triplas")
 image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
 print("Pronto !!!")
 
+free_memory(lista_imagens)
+free_memory(image_triples)
+
 NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
@@ -208,3 +223,4 @@ scores[3, 2] = best_score
 test_report(best_clf, Xtest, ytest)
 save_model(best_clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
 
+print("Finalizado com sucesso !!!")
