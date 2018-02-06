@@ -29,6 +29,7 @@ IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 #################################################################
 #               Gerando lotes para treinamento                  #
 #################################################################
+@profile
 def image_batch_generator(image_names, batch_size):
     num_batches = len(image_names) // batch_size
     for i in range(num_batches):
@@ -41,6 +42,7 @@ def image_batch_generator(image_names, batch_size):
 #################################################################
 #                       Vetorizando Imagens                     #
 #################################################################
+@profile
 def vectorize_images(image_dir, image_size, preprocessor, 
                      model, vector_file, batch_size=32):
     
@@ -72,7 +74,7 @@ def vectorize_images(image_dir, image_size, preprocessor,
 #################################################################
 #                         Generate Triples                      #
 #################################################################
-
+@profile
 def criar_triplas(image_dir, lista_imagens):        
     data = pd.read_csv(lista_imagens, sep=",", header=1, names=["image_id","filename","category_id"])
     image_cache = {}
@@ -100,7 +102,7 @@ def criar_triplas(image_dir, lista_imagens):
 #################################################################
 #                          Load Vectors                         #
 #################################################################
-
+@profile
 def carregar_vetores(vector_file):
     vec_dict = {}
     fvec = open(vector_file, "r")
@@ -114,7 +116,7 @@ def carregar_vetores(vector_file):
 #################################################################
 #                 pré-processamento dos dados                   #
 #################################################################
-
+@profile
 def preprocessar_dados(vector_file, train_size=0.7):
     xdata, ydata = [], []
     vec_dict = carregar_vetores(vector_file)
@@ -136,7 +138,7 @@ def preprocessar_dados(vector_file, train_size=0.7):
 #################################################################
 #                       validação cruzada                       #
 #################################################################
-
+@profile
 def validacao_cruzada(X, y, clf, k=10):
     best_score, best_clf = 0.0, None
     kfold = KFold(k)
