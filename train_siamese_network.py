@@ -198,22 +198,24 @@ vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
 #                       Inicio da Execucao                      #
 #################################################################
 
-lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
-print("Criando triplas")
-image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
-print("Pronto !!!")
-
-free_memory(lista_imagens)
-free_memory(image_triples)
-
 NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
+
+lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
+print("Criando triplas")
+image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
+data_len = len(image_triples)
+print("Pronto !!!")
+
+free_memory(lista_imagens)
 
 print("Pré-processando dados")
 Xtrain, Xtest, ytrain, ytest = preprocessar_dados(VECTOR_FILE)
 print(Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
 print("Pronto !!!")
+
+free_memory(image_triples)
 
 #################################################################
 #                         Classificador                         #
