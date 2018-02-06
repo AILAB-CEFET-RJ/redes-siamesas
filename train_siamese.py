@@ -175,7 +175,7 @@ def save_model(model, model_file):
 #################################################################
 #                         release memory                        #
 #################################################################
-def free_memory(a)
+def free_memory(a):
     if isinstance(a, list): 
         del a[:]
     del a
