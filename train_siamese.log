@@ -1,0 +1,11 @@
+2018-02-12 11:42:59,060 - __main__ - INFO - ************************* Iniciando a execução *******************************
+2018-02-12 11:42:59,061 - __main__ - INFO - Criando triplas
+2018-02-12 11:42:59,067 - __main__ - INFO - Pronto !!!
+2018-02-12 11:42:59,067 - __main__ - DEBUG - Triplas criadas: 2352
+2018-02-12 11:42:59,067 - __main__ - DEBUG - Tamanho do lote: 100
+2018-02-12 11:42:59,067 - __main__ - DEBUG - Quantidade de lotes: 23
+2018-02-12 11:42:59,067 - __main__ - INFO - Iniciando o Pré-processando dados
+2018-02-12 11:43:34,297 - __main__ - INFO - Pronto !!!
+2018-02-12 11:43:34,298 - __main__ - INFO - Iniciando classficador
+2018-02-12 11:45:18,532 - __main__ - DEBUG - Salvando model em /media/ramon/Dados1/datasets/vqa/
+2018-02-12 11:45:18,542 - __main__ - INFO - Finalizado com sucesso !!!
