@@ -201,7 +201,7 @@ NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
-lista_imagens = os.path.join(DATA_DIR, 'train_50.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 logger.info("Criando triplas")
 image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
 logger.info("Pronto !!!")
@@ -235,9 +235,7 @@ for i in range(0, quantidade_de_lotes):
     logger.debug("inicio %s, fim %s", start, end)
 
     x1, x2, y1, y2 = preprocessar_dados(vec_dict, amostra)
-    
-    logger.debug("x1: %s", x1)
-    
+            
     Xtrain.extend(x1)
     Xtest.extend(x2)
     ytrain.extend(y1)
