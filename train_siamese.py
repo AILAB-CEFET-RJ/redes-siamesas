@@ -159,8 +159,7 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
 #                       validação cruzada                       #
 #################################################################
 
-def validacao_cruzada(X, y, clf, k=10):
-    best_score, best_clf = 0.0, None
+def validacao_cruzada(X, y, clf, k=10, best_score=0.0, best_clf=None):    
     kfold = KFold(k)
     for kid, (train, test) in enumerate(kfold.split(X, y)):
         Xtrain, Xtest, ytrain, ytest = X[train], X[test], y[train], y[test]
@@ -241,6 +240,9 @@ Xtrain, Xtest, ytrain, ytest = [], [], [], []
 
 vec_dict = carregar_vetores(VECTOR_FILE)
 
+clf = XGBClassifier()
+best_clf, best_score = 0.0, None
+
 for i in range(0, quantidade_de_lotes):
     
     logger.debug("Iterando sobre o lote %s", i)
@@ -255,34 +257,15 @@ for i in range(0, quantidade_de_lotes):
    
     logger.debug("inicio %s, fim %s", start, end)
     logger.debug("Uso de Memoria : %s", process.memory_info().rss)
-    x1, x2, y1, y2 = preprocessar_dados(vec_dict, amostra)
-            
-    Xtrain.extend(x1)
-    Xtest.extend(x2)
-    ytrain.extend(y1)
-    ytest.extend(y2)
+    Xtrain, Xtest, ytrain, ytest = preprocessar_dados(vec_dict, amostra)
 
-logger.info("Pre-processamento completo")
+    logger.debug("%s %s %s %s", Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
 
-Xtrain = np.array(Xtrain)
-Xtest = np.array(Xtest)
-ytrain = np.array(ytrain)
-ytest = np.array(ytest)
+    logger.debug("Validação cruzada")
 
-logger.debug("%s %s %s %s", Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
-
-logger.debug("Uso de Memoria : %s", process.memory_info().rss)
-
-#################################################################
-#                         Classificador                         #
-#################################################################
-
-logger.info('Iniciando classficador')
-
-clf = XGBClassifier()
-best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf)
-scores[3, 2] = best_score
-test_report(best_clf, Xtest, ytest)
+    best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, best_score, best_clf)
+    scores[3, 2] = best_score
+    test_report(best_clf, Xtest, ytest)
 
 logger.debug("Salvando model em %s", DATA_DIR)
 save_model(best_clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
