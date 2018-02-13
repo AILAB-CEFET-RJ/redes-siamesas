@@ -28,7 +28,7 @@ import logging
 #################################################################
 #               Configurando logs de execuçao                   #
 #################################################################
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
                     filename='logs/train_siamese.log',
@@ -166,7 +166,7 @@ def validacao_cruzada(X, y, clf, k=10, best_score=0.0, best_clf=None):
         clf.fit(Xtrain, ytrain)
         ytest_ = clf.predict(Xtest)
         score = accuracy_score(ytest_, ytest)
-        logger.info("fold {:d}, score: {:.3f}".format(kid, score))
+        logger.debug("fold {:d}, score: {:.3f}".format(kid, score))
         if score > best_score:
             best_score = score
             best_clf = clf
@@ -219,7 +219,7 @@ NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
-lista_imagens = os.path.join(DATA_DIR, 'train_2014_50.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 logger.info("Criando triplas")
 image_triples = criar_triplas(lista_imagens)
 logger.info("Pronto !!!")
@@ -227,7 +227,7 @@ logger.info("Pronto !!!")
 #logger.debug("Uso de Memoria : %s", process.memory_info().rss)
 
 tamanho = len(image_triples)
-TAMANHO_LOTE = 100
+TAMANHO_LOTE = 1000
 quantidade_de_lotes = (tamanho // TAMANHO_LOTE) + 1
 
 logger.debug('Triplas criadas: %s', tamanho)
@@ -237,7 +237,7 @@ logger.debug('Quantidade de lotes: %s', quantidade_de_lotes)
 logger.info("Iniciando o Pré-processando dados")
 
 Xtrain, Xtest, ytrain, ytest = [], [], [], []
-
+X, Y = [], []
 vec_dict = carregar_vetores(VECTOR_FILE)
 
 clf = XGBClassifier()
@@ -259,14 +259,17 @@ for i in range(0, quantidade_de_lotes):
             
     Xtrain, Xtest, ytrain, ytest = preprocessar_dados(vec_dict, amostra)
 
-    logger.debug("%s %s %s %s", Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
+    #logger.debug("%s %s %s %s", Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
+    #logger.debug("Validação cruzada")
 
-    logger.debug("Validação cruzada")
+    logger.debug( "%s - %s", Xtrain[0], ytrain[0] )
 
     best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 10, best_score, best_clf)
     scores[3, 2] = best_score
-    test_report(best_clf, Xtest, ytest)
-
+    X.extend(Xtest)
+    Y.extend(ytest)
+    
+test_report(best_clf, Xtest, ytest)
 logger.debug("Salvando model em %s", DATA_DIR)
 save_model(best_clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
 
