@@ -245,7 +245,7 @@ best_clf, best_score = None, 0.0
 
 for i in range(0, quantidade_de_lotes):
     
-    logger.debug("Iterando sobre o lote %s", i)
+    logger.info("Iterando sobre o lote %s/%s", i, quantidade_de_lotes)
     
     start = i * TAMANHO_LOTE
     end = start + TAMANHO_LOTE - 1
