@@ -1,8 +1,8 @@
 import os
 
 ### Usar quando as placas de video estiverem ocupadas com outros processos
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+#os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 from scipy.misc import imresize
 from keras.applications import resnet50, xception
@@ -21,15 +21,26 @@ import itertools
 import pandas as pd
 from sklearn.utils import shuffle
 
+import logging
+
+#################################################################
+#               Configurando logs de execuçao                   #
+#################################################################
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='logs/train_siamese.log',
+                    filemode='w')
+logger = logging.getLogger(__name__)
+
 np.random.seed(7)
 
-DATA_DIR = "/home/rsilva/datasets/vqa/"
+DATA_DIR = os.environ["DATA_DIR"]
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 
 #################################################################
 #               Gerando lotes para treinamento                  #
 #################################################################
-@profile
 def image_batch_generator(image_names, batch_size):
     num_batches = len(image_names) // batch_size
     for i in range(num_batches):
@@ -42,12 +53,11 @@ def image_batch_generator(image_names, batch_size):
 #################################################################
 #                       Vetorizando Imagens                     #
 #################################################################
-@profile
 def vectorize_images(image_dir, image_size, preprocessor, 
                      model, vector_file, batch_size=32):
     
     if( os.path.isfile(vector_file) ):
-        print(vector_file, "already exists !!!")
+        logger.info( "%s already exists ", vector_file)
         return
     
     image_names = os.listdir(image_dir)
@@ -63,18 +73,18 @@ def vectorize_images(image_dir, image_size, preprocessor,
         vectors = model.predict(X)
         for i in range(vectors.shape[0]):
             if num_vecs % 100 == 0:
-                print("{:d} vectors generated".format(num_vecs))
+                logger.info("{:d} vectors generated".format(num_vecs))
             image_vector = ",".join(["{:.5e}".format(v) for v in vectors[i].tolist()])
             fvec.write("{:s}\t{:s}\n".format(image_batch[i], image_vector))
             num_vecs += 1
-    print("{:d} vectors generated".format(num_vecs))
+    logger.info("{:d} vectors generated".format(num_vecs))
     fvec.close()
 
 
 #################################################################
 #                         Generate Triples                      #
 #################################################################
-@profile
+
 def criar_triplas(image_dir, lista_imagens):        
     data = pd.read_csv(lista_imagens, sep=",", header=1, names=["image_id","filename","category_id"])
     image_cache = {}
@@ -95,14 +105,12 @@ def criar_triplas(image_dir, lista_imagens):
                     triplas.append((row["filename"], _r["filename"], 1))
                 else:
                     triplas.append((row["filename"], _r["filename"], 0))
-    
-    free_memory(image_cache)
     return shuffle(triplas)
 
 #################################################################
 #                          Load Vectors                         #
 #################################################################
-@profile
+
 def carregar_vetores(vector_file):
     vec_dict = {}
     fvec = open(vector_file, "r")
@@ -116,29 +124,24 @@ def carregar_vetores(vector_file):
 #################################################################
 #                 pré-processamento dos dados                   #
 #################################################################
-@profile
-def preprocessar_dados(vector_file, train_size=0.7):
-    xdata, ydata = [], []
-    vec_dict = carregar_vetores(vector_file)
 
-    for image_triple in image_triples:
+def preprocessar_dados(vec_dict, triplas, train_size=0.7):
+    xdata, ydata = [], []
+    
+    for image_triple in triplas:
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]
         xdata.append(np.power(np.subtract(X1, X2), 2))
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
-    
-    free_memory(xdata)
-    free_memory(ydata)
-    free_memory(vec_dict)
-    
+   
     return Xtrain, Xtest, ytrain, ytest
 
 #################################################################
 #                       validação cruzada                       #
 #################################################################
-@profile
+
 def validacao_cruzada(X, y, clf, k=10):
     best_score, best_clf = 0.0, None
     kfold = KFold(k)
@@ -147,7 +150,7 @@ def validacao_cruzada(X, y, clf, k=10):
         clf.fit(Xtrain, ytrain)
         ytest_ = clf.predict(Xtest)
         score = accuracy_score(ytest_, ytest)
-        print("fold {:d}, score: {:.3f}".format(kid, score))
+        logger.info("fold {:d}, score: {:.3f}".format(kid, score))
         if score > best_score:
             best_score = score
             best_clf = clf
@@ -158,11 +161,11 @@ def validacao_cruzada(X, y, clf, k=10):
 #################################################################
 def test_report(clf, Xtest, ytest):
     ytest_ = clf.predict(Xtest)
-    print("\nAccuracy Score: {:.3f}".format(accuracy_score(ytest_, ytest)))
-    print("\nConfusion Matrix")
-    print(confusion_matrix(ytest_, ytest))
-    print("\nClassification Report")
-    print(classification_report(ytest_, ytest))
+    logger.info("\nAccuracy Score: {:.3f}".format(accuracy_score(ytest_, ytest)))
+    logger.info("\nConfusion Matrix")
+    logger.info("%s", confusion_matrix(ytest_, ytest))
+    logger.info("\nClassification Report")
+    logger.info("%s", classification_report(ytest_, ytest))
 
 #################################################################
 #                    Salvar / Carregar modelos                  #
@@ -173,14 +176,6 @@ def get_model_file(data_dir, vec_name, clf_name):
 
 def save_model(model, model_file):
     joblib.dump(model, model_file)
-
-#################################################################
-#                         release memory                        #
-#################################################################
-def free_memory(a):
-    if isinstance(a, list): 
-        del a[:]
-    del a
 
 #################################################################
 #                          Generate Vectors                     #
@@ -200,32 +195,73 @@ vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
 #                       Inicio da Execucao                      #
 #################################################################
 
+logger.info("*** Iniciando a execução ***")
+
 NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
 lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
-print("Criando triplas")
+logger.info("Criando triplas")
 image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
-data_len = len(image_triples)
-print("Pronto !!!")
+logger.info("Pronto !!!")
 
-free_memory(lista_imagens)
+tamanho = len(image_triples)
+TAMANHO_LOTE = 100
+quantidade_de_lotes = (tamanho // TAMANHO_LOTE) + 1
 
-print("Pré-processando dados")
-Xtrain, Xtest, ytrain, ytest = preprocessar_dados(VECTOR_FILE)
-print(Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
-print("Pronto !!!")
+logger.debug('Triplas criadas: %s', tamanho)
+logger.debug('Tamanho do lote: %s', TAMANHO_LOTE)
+logger.debug('Quantidade de lotes: %s', quantidade_de_lotes)
 
-free_memory(image_triples)
+logger.info("Iniciando o Pré-processando dados")
+
+Xtrain, Xtest, ytrain, ytest = [], [], [], []
+
+vec_dict = carregar_vetores(VECTOR_FILE)
+
+for i in range(0, quantidade_de_lotes):
+    
+    logger.debug("Iterando sobre o lote %s", i)
+    
+    start = i * TAMANHO_LOTE
+    end = start + TAMANHO_LOTE - 1
+    
+    if(i == quantidade_de_lotes):
+        amostra = image_triples[start:]
+    else:
+        amostra = image_triples[start:end]
+   
+    logger.debug("inicio %s, fim %s", start, end)
+
+    x1, x2, y1, y2 = preprocessar_dados(vec_dict, amostra)
+            
+    Xtrain.extend(x1)
+    Xtest.extend(x2)
+    ytrain.extend(y1)
+    ytest.extend(y2)
+
+logger.info("Pre-processamento completo")
+
+Xtrain = np.array(Xtrain)
+Xtest = np.array(Xtest)
+ytrain = np.array(ytrain)
+ytest = np.array(ytest)
+
+logger.debug("%s %s %s %s", Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
 
 #################################################################
 #                         Classificador                         #
 #################################################################
+
+logger.info('Iniciando classficador')
+
 clf = XGBClassifier()
 best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf)
 scores[3, 2] = best_score
 test_report(best_clf, Xtest, ytest)
+
+logger.debug("Salvando model em %s", DATA_DIR)
 save_model(best_clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
 
-print("Finalizado com sucesso !!!")
+logger.info("Finalizado com sucesso !!!")

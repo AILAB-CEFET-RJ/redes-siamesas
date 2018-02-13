@@ -1,6 +1,9 @@
 import os
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-#os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+import sys
+import logging as log
 
 from keras import backend as K
 from keras.applications import vgg16
@@ -16,11 +19,14 @@ import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sys
+
 from sklearn.utils import shuffle
 
 DATA_DIR = "/home/ramon/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
+
+
+log.basicConfig(filename='logs/vqa_training.log',level=logging.INFO)
 
 def imagem_aleatoria(img_groups, group_names, gid):
     gname = group_names[gid]
@@ -54,15 +60,21 @@ def criar_triplas(image_dir):
     return shuffle(triplas)
 
 def carregar_imagem(image_name):
+    log.debug("carragendo imagem : %s", image_name)
     if image_name not in image_cache:
+        log.debug("cache miss")
         image = plt.imread(os.path.join(IMAGE_DIR, image_name)).astype(np.float32)
         image = imresize(image, (224, 224))
         image = np.divide(image, 256)
         image_cache[image_name] = image
+    else:
+        log.debug("cache hit")
     return image_cache[image_name]
 
 def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
+    log.info("Gerando triplas")
     while True:
+        
         # loop once per epoch
         if shuffle:
             indices = np.random.permutation(np.arange(len(image_triples)))
@@ -70,6 +82,9 @@ def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
             indices = np.arange(len(image_triples))
         shuffled_triples = [image_triples[ix] for ix in indices]
         num_batches = len(shuffled_triples) // batch_size
+
+        log.debug("%s batches of %s generated", num_batches, batch_size)
+
         for bid in range(num_batches):
             # loop once per batch
             images_left, images_right, labels = [], [], []

@@ -2,3 +2,4 @@ nohup.out
 models/
 .vscode/
 venv/
+logs/
