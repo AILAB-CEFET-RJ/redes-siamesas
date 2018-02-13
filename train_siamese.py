@@ -3,6 +3,8 @@ import os
 ### Usar quando as placas de video estiverem ocupadas com outros processos
 #os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+import psutil
+
 
 from scipy.misc import imresize
 from keras.applications import resnet50, xception
@@ -85,27 +87,42 @@ def vectorize_images(image_dir, image_size, preprocessor,
 #                         Generate Triples                      #
 #################################################################
 
-def criar_triplas(image_dir, lista_imagens):        
-    data = pd.read_csv(lista_imagens, sep=",", header=1, names=["image_id","filename","category_id"])
-    image_cache = {}
-    for index, row in data.iterrows():
-        id = row["filename"]
-        if(id in image_cache):
-            image_cache[id]["categories"].append(row["category_id"])
-        else:
-            image_cache[id] = {"image_id" : id, "filename" : row["filename"], "categories" : [row["category_id"]]}
-    #Triplas que serao retornadas
-    triplas = []
+def get_random_image(img_groups, group_names, gid):
+    gname = group_names[gid]
+    photos = img_groups[gname]
+    pid = np.random.choice(np.arange(len(photos)), size=1)[0]
+    pname = photos[pid]
+    return pname
 
-    for index, row in image_cache.items():
-        for _i, _r in image_cache.items():
-            if index != _i:
-                _match = set(row["categories"]).intersection(_r["categories"])
-                if len(_match) > 0:
-                    triplas.append((row["filename"], _r["filename"], 1))
-                else:
-                    triplas.append((row["filename"], _r["filename"], 0))
-    return shuffle(triplas)
+def criar_triplas(lista_imagens):    
+    data = pd.read_csv(lista_imagens, sep=",", header=0, names=["image_id","filename","category_id"])
+    img_groups = {}
+    
+    for index, row in data.iterrows():
+        pid = row["filename"]
+        gid = row["category_id"]
+        
+        if gid in img_groups:
+            img_groups[gid].append(pid)
+        else:
+            img_groups[gid] = [pid]
+    
+    pos_triples, neg_triples = [], []
+    #A triplas positivas são a combinação de imagens com a mesma categoria
+    for key in img_groups.keys():
+        triples = [(x[0], x[1], 1) 
+                 for x in itertools.combinations(img_groups[key], 2)]
+        pos_triples.extend(triples)
+    # é necessário o mesmo número de exemplos negativos
+    group_names = list(img_groups.keys())
+    for i in range(len(pos_triples)):
+        g1, g2 = np.random.choice(np.arange(len(group_names)), size=2, replace=False)
+        left = get_random_image(img_groups, group_names, g1)
+        right = get_random_image(img_groups, group_names, g2)
+        neg_triples.append((left, right, 0))
+    pos_triples.extend(neg_triples)
+    shuffle(pos_triples)
+    return pos_triples 
 
 #################################################################
 #                          Load Vectors                         #
@@ -195,16 +212,20 @@ vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
 #                       Inicio da Execucao                      #
 #################################################################
 
+process = psutil.Process(os.getpid())
+
 logger.info("*** Iniciando a execução ***")
 
 NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
-lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_50.csv')
 logger.info("Criando triplas")
-image_triples = criar_triplas(IMAGE_DIR, lista_imagens)
+image_triples = criar_triplas(lista_imagens)
 logger.info("Pronto !!!")
+
+logger.debug("Uso de Memoria : %s", process.memory_info().rss)
 
 tamanho = len(image_triples)
 TAMANHO_LOTE = 100
@@ -233,7 +254,7 @@ for i in range(0, quantidade_de_lotes):
         amostra = image_triples[start:end]
    
     logger.debug("inicio %s, fim %s", start, end)
-
+    logger.debug("Uso de Memoria : %s", process.memory_info().rss)
     x1, x2, y1, y2 = preprocessar_dados(vec_dict, amostra)
             
     Xtrain.extend(x1)
@@ -249,6 +270,8 @@ ytrain = np.array(ytrain)
 ytest = np.array(ytest)
 
 logger.debug("%s %s %s %s", Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
+
+logger.debug("Uso de Memoria : %s", process.memory_info().rss)
 
 #################################################################
 #                         Classificador                         #
