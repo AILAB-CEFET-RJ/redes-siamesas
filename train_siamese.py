@@ -1,8 +1,8 @@
 import os
 
 ### Usar quando as placas de video estiverem ocupadas com outros processos
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-#os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import psutil
 
 
@@ -220,12 +220,12 @@ NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
-lista_imagens = os.path.join(DATA_DIR, 'train_50.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 logger.info("Criando triplas")
 image_triples = criar_triplas(lista_imagens)
 logger.info("Pronto !!!")
 
-logger.debug("Uso de Memoria : %s", process.memory_info().rss)
+#logger.debug("Uso de Memoria : %s", process.memory_info().rss)
 
 tamanho = len(image_triples)
 TAMANHO_LOTE = 100
@@ -254,7 +254,7 @@ for i in range(0, quantidade_de_lotes):
         amostra = image_triples[start:end]
    
     logger.debug("inicio %s, fim %s", start, end)
-    logger.debug("Uso de Memoria : %s", process.memory_info().rss)
+    #logger.debug("Uso de Memoria : %s", process.memory_info().rss)
     x1, x2, y1, y2 = preprocessar_dados(vec_dict, amostra)
             
     Xtrain.extend(x1)
@@ -271,7 +271,7 @@ ytest = np.array(ytest)
 
 logger.debug("%s %s %s %s", Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
 
-logger.debug("Uso de Memoria : %s", process.memory_info().rss)
+#logger.debug("Uso de Memoria : %s", process.memory_info().rss)
 
 #################################################################
 #                         Classificador                         #
