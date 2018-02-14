@@ -227,7 +227,7 @@ logger.info("Pronto !!!")
 #logger.debug("Uso de Memoria : %s", process.memory_info().rss)
 
 tamanho = len(image_triples)
-TAMANHO_LOTE = 1000
+TAMANHO_LOTE = 1024
 quantidade_de_lotes = (tamanho // TAMANHO_LOTE) + 1
 
 logger.debug('Triplas criadas: %s', tamanho)
@@ -264,7 +264,7 @@ for i in range(0, quantidade_de_lotes):
 
     logger.debug( "%s - %s", Xtrain[0], ytrain[0] )
 
-    best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 10, best_score, best_clf)
+    best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 256, best_score, best_clf)
     scores[3, 2] = best_score
     X.extend(Xtest)
     Y.extend(ytest)
