@@ -2,14 +2,14 @@ import json
 import mysql.connector
 import os
 
-DATA_DIR = "/home/rsilva/Projects/cefet/dataset/vqa/"
+DATA_DIR = "/media/ramon/Dados1/datasets/vqa/"
 ANNOTATION_DIR = os.path.join(DATA_DIR, "annotations/")
 IMAGE_DIR = os.path.join(DATA_DIR,"train2014")
 
 def insert_category(id, image_id, category_id, filename, bbox):
     try:
-        update_url = "INSERT INTO vqa_images (id, image_id , category_id, filename, year, bound_box) values (%s, %s, %s, %s, %s, %s)"
-        data = (id, image_id, category_id, filename, "2014", ",".join(map(str,bbox)))
+        update_url = "INSERT INTO vqa_images (id, image_id , category_id, filename, year, bound_box, data_split) values (%s, %s, %s, %s, %s, %s, %s)"
+        data = (id, image_id, category_id, filename, "2014", ",".join(map(str,bbox)), 'train')
         cursor.execute(update_url, data)
     except mysql.connector.Error as err:
         print(err)
@@ -18,7 +18,7 @@ def insert_category(id, image_id, category_id, filename, bbox):
         print(err)
         print("data", id, image_id, category_id, filename, bbox)
         
-data = json.load(open(os.path.join(ANNOTATION_DIR,"instances_val2014.json")))
+data = json.load(open(os.path.join(ANNOTATION_DIR,"instances_train2014.json")))
 
 cnx = mysql.connector.connect(user='root', password='secret',
                               host='127.0.0.1', port='3306',
