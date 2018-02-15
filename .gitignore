@@ -3,3 +3,4 @@ models/
 .vscode/
 venv/
 logs/
+data/
