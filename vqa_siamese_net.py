@@ -11,6 +11,7 @@ from keras.applications import resnet50, xception
 from keras.models import Model
 import matplotlib.pyplot as plt
 import numpy as np
+import gnumpy as gnp
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.externals import joblib
@@ -148,7 +149,7 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
     for image_triple in triplas:
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]
-        xdata.append(np.power(np.subtract(X1, X2), 2))
+        xdata.append(gnp.power(gnp.subtract(X1, X2), 2))
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
