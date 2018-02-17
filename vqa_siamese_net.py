@@ -3,7 +3,6 @@ import os
 ### Usar quando as placas de video estiverem ocupadas com outros processos
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-import psutil
 
 from scipy.misc import imresize
 from keras.applications import resnet50, xception
@@ -212,10 +211,6 @@ vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
 #                       Inicio da Execucao                      #
 #################################################################
 
-process = psutil.Process(os.getpid())
-
-
-cm.cublas_init()
 
 logger.info("*** Iniciando a execução ***")
 
@@ -228,10 +223,8 @@ logger.info("Criando triplas")
 image_triples = criar_triplas(lista_imagens)
 logger.info("Pronto !!!")
 
-#logger.debug("Uso de Memoria : %s", process.memory_info().rss)
-
 tamanho = len(image_triples)
-TAMANHO_LOTE = 1024
+TAMANHO_LOTE = 100
 quantidade_de_lotes = (tamanho // TAMANHO_LOTE) + 1
 
 logger.debug('Triplas criadas: %s', tamanho)
@@ -268,7 +261,7 @@ for i in range(0, quantidade_de_lotes):
 
     logger.debug( "%s - %s", Xtrain[0], ytrain[0] )
 
-    best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 256, best_score, best_clf)
+    best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 10, best_score, best_clf)
     scores[3, 2] = best_score
     X.extend(Xtest)
     Y.extend(ytest)
