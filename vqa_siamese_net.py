@@ -11,7 +11,6 @@ from keras.models import Model
 
 import matplotlib.pyplot as plt
 import numpy as np
-import cudamat as cm
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.externals import joblib
@@ -149,11 +148,8 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
     for image_triple in triplas:
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]
-        
-        a = cm.CUDAMatrix(X1)
-        b = cm.CUDAMatrix(X2)
-                
-        xdata.append(cm.power(cm.subtract(a, b), 2))
+               
+        xdata.append(np.power(np.subtract(a, b), 2))
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
