@@ -148,7 +148,7 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]
                
-        xdata.append(np.power(np.subtract(a, b), 2))
+        xdata.append(np.power(np.subtract(X1, X2), 2))
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
