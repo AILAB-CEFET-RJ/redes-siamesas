@@ -24,6 +24,8 @@ from sklearn.utils import shuffle
 
 import logging
 
+from utils import calc
+
 #################################################################
 #               Configurando logs de execuçao                   #
 #################################################################
@@ -146,9 +148,9 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
     
     for image_triple in triplas:
         X1 = vec_dict[image_triple[0]]
-        X2 = vec_dict[image_triple[1]]
-               
-        xdata.append(np.power(np.subtract(X1, X2), 2))
+        X2 = vec_dict[image_triple[1]]      
+        distance = calc.distance(X1, X2)       
+        xdata.append(distance)
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
@@ -259,7 +261,7 @@ for i in range(0, quantidade_de_lotes):
     #logger.debug("%s %s %s %s", Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
     #logger.debug("Validação cruzada")
 
-    logger.debug( "%s - %s", Xtrain[0], ytrain[0] )
+    #logger.debug( "%s - %s", Xtrain[0], ytrain[0] )
 
     best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 10, best_score, best_clf)
     scores[3, 2] = best_score
