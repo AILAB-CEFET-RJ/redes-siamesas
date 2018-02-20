@@ -18,11 +18,19 @@ import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+import logging
 from sklearn.utils import shuffle
 
 DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
+
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='/home/rsilva/logs/basic_siamese.log',
+                    filemode='w')
+logger = logging.getLogger(__name__)
 
 
 def imagem_aleatoria(img_groups, group_names, gid):
@@ -34,7 +42,7 @@ def imagem_aleatoria(img_groups, group_names, gid):
     return pname
 
 def criar_triplas(image_dir):
-    data = pd.read_csv(os.path.join(DATA_DIR, 'train_2014_50.csv'), sep=",", header=1, names=["img_id", "category_id", "filename"])
+    data = pd.read_csv(os.path.join(DATA_DIR, 'train_2014.csv'), sep=",", header=1, names=["img_id", "filename", "category_id"])
     image_cache = {}
     for index, row in data.iterrows():
         id = row["img_id"]
@@ -57,19 +65,19 @@ def criar_triplas(image_dir):
     return shuffle(triplas)
 
 def carregar_imagem(image_name):
-    print("carragendo imagem : %s", image_name)
+    logging.debug("carragendo imagem : %s" % image_name)
     if image_name not in image_cache:
-        print("cache miss")
+        logging.debug("cache miss")
         image = plt.imread(os.path.join(IMAGE_DIR, image_name)).astype(np.float32)
         image = imresize(image, (224, 224))
         image = np.divide(image, 256)
         image_cache[image_name] = image
     else:
-        print("cache hit")
+        logging.debug("cache hit")
     return image_cache[image_name]
 
 def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
-    print("Gerando triplas")
+    logging.info("Gerando triplas")
     while True:
         
         # loop once per epoch
@@ -80,7 +88,7 @@ def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
         shuffled_triples = [image_triples[ix] for ix in indices]
         num_batches = len(shuffled_triples) // batch_size
 
-        print("%s batches of %s generated", num_batches, batch_size)
+        logging.info("%s batches of %s generated" % (num_batches, batch_size))
 
         for bid in range(num_batches):
             # loop once per batch
@@ -130,14 +138,12 @@ def criar_instancia_rede_neural(entrada):
 
 ####################### Inicio da Execucao #######################
 
-print("####################### Inicio da Execucao #######################")
+logger.info("####################### Inicio da Execucao #######################")
 
-print("Gerando triplas")
+logging.info("Gerando triplas")
 triplas = criar_triplas(IMAGE_DIR)
 
-print("# triplas de imagens:", len(triplas))
-[print(x) for x in triplas[0:5]]
-
+logging.debug("# triplas de imagens: %d" % len(triplas))
 
 TAMANHO_LOTE = 64
 
@@ -185,7 +191,7 @@ historico = model.fit_generator(lote_de_treinamento,
                             validation_data=lote_de_validacao,
                             validation_steps=num_passos_validacao)
 
-print("Salvando o modelo em disco")
+logging.info("Salvando o modelo em disco")
 # serialize model to JSON
 model_json = model.to_json()
 with open("models/imagenet.json", "w") as json_file:
@@ -193,4 +199,7 @@ with open("models/imagenet.json", "w") as json_file:
 
 # serialize weights to HDF5
 model.save_weights("models/imagenet_weights.h5")
-print("Modelo salvo")
+logging.info("Modelo salvo")
+
+logging.info("Finalizado")
+
