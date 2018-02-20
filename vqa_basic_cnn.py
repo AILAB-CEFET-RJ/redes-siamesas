@@ -185,23 +185,27 @@ lote_de_validacao = gerar_triplas_em_lote(dados_teste, TAMANHO_LOTE, shuffle=Fal
 num_passos_treinamento = len(dados_treino) // NUM_EPOCAS
 num_passos_validacao = len(dados_teste) // NUM_EPOCAS
 
-csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs.log'))
+best_model_file = "models/best.hdf"
+csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs.log')
+model_checkpoint = ModelCheckpoint(best_model_file, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+
+callbacks_list = [csv_logger, model_checkpoint]
 
 historico = model.fit_generator(lote_de_treinamento,
                             steps_per_epoch=num_passos_treinamento,
                             epochs=NUM_EPOCAS,
                             validation_data=lote_de_validacao,
                             validation_steps=num_passos_validacao,
-                            callbacks=[csv_logger])
+                            callbacks=callbacks_list)
 
 logging.info("Salvando o modelo em disco")
 # serialize model to JSON
 model_json = model.to_json()
-with open("models/imagenet.json", "w") as json_file:
+with open("models/vqa.json", "w") as json_file:
     json_file.write(model_json)
 
 # serialize weights to HDF5
-model.save_weights("models/imagenet_weights.h5")
+model.save_weights("models/vqa_weights.h5")
 logging.info("Modelo salvo")
 
 logging.info("Finalizado")
