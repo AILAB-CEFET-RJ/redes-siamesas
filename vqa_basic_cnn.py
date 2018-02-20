@@ -11,6 +11,8 @@ from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Activation, Dense, Dropout, Flatten, Lambda
 from keras.models import Sequential, Model
 from keras.utils import np_utils
+from keras.callbacks import CSVLogger
+
 from sklearn.model_selection import train_test_split
 from random import shuffle
 from scipy.misc import imresize
@@ -41,7 +43,7 @@ def imagem_aleatoria(img_groups, group_names, gid):
     return pname
 
 def criar_triplas(image_dir):
-    data = pd.read_csv(os.path.join(DATA_DIR, 'train_2014.csv'), sep=",", header=1, names=["img_id", "filename", "category_id"])
+    data = pd.read_csv(os.path.join(DATA_DIR, 'train_2014_50.csv'), sep=",", header=1, names=["img_id", "filename", "category_id"])
     image_cache = {}
     for index, row in data.iterrows():
         id = row["img_id"]
@@ -78,8 +80,6 @@ def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
     logging.info("Gerando triplas")
     while True:
         
-        logging.info("%s batches of %s generated" % (num_batches, batch_size))
-
         # loop once per epoch
         if shuffle:
             indices = np.random.permutation(np.arange(len(image_triples)))
@@ -87,7 +87,9 @@ def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
             indices = np.arange(len(image_triples))
         shuffled_triples = [image_triples[ix] for ix in indices]
         num_batches = len(shuffled_triples) // batch_size
-       
+      
+        logging.info("%s batches of %s generated" % (num_batches, batch_size))
+ 
         for bid in range(num_batches):
             # loop once per batch
             images_left, images_right, labels = [], [], []
@@ -183,7 +185,7 @@ lote_de_validacao = gerar_triplas_em_lote(dados_teste, TAMANHO_LOTE, shuffle=Fal
 num_passos_treinamento = len(dados_treino) // NUM_EPOCAS
 num_passos_validacao = len(dados_teste) // NUM_EPOCAS
 
-csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs.log')
+csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs.log'))
 
 historico = model.fit_generator(lote_de_treinamento,
                             steps_per_epoch=num_passos_treinamento,
