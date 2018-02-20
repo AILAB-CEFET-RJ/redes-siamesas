@@ -3,7 +3,6 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import sys
-import logging as log
 
 from keras import backend as K
 from keras.applications import vgg16
@@ -25,8 +24,6 @@ from sklearn.utils import shuffle
 DATA_DIR = "/home/ramon/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 
-
-log.basicConfig(filename='logs/vqa_training.log',level=logging.INFO)
 
 def imagem_aleatoria(img_groups, group_names, gid):
     gname = group_names[gid]
@@ -135,7 +132,7 @@ def criar_instancia_rede_neural(entrada):
 
 print("####################### Inicio da Execucao #######################")
 
-print("Geran")
+print("Gerando triplas")
 triplas = criar_triplas(IMAGE_DIR)
 
 print("# triplas de imagens:", len(triplas))
