@@ -11,7 +11,7 @@ from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Activation, Dense, Dropout, Flatten, Lambda
 from keras.models import Sequential, Model
 from keras.utils import np_utils
-from keras.callbacks import CSVLogger
+from keras.callbacks import CSVLogger, ModelCheckpoint
 
 from sklearn.model_selection import train_test_split
 from random import shuffle
