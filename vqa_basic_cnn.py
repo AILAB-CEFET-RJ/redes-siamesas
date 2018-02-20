@@ -184,13 +184,16 @@ num_passos_treinamento = len(dados_treino) // NUM_EPOCAS
 num_passos_validacao = len(dados_teste) // NUM_EPOCAS
 
 csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs.log')
+model_checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+
+callbacks_list = [csv_logger, model_checkpoint]
 
 historico = model.fit_generator(lote_de_treinamento,
                             steps_per_epoch=num_passos_treinamento,
                             epochs=NUM_EPOCAS,
                             validation_data=lote_de_validacao,
                             validation_steps=num_passos_validacao,
-                            callbacks=[csv_logger])
+                            callbacks=callbacks_list)
 
 logging.info("Salvando o modelo em disco")
 # serialize model to JSON
