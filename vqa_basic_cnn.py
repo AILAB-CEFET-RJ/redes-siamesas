@@ -23,12 +23,12 @@ from sklearn.utils import shuffle
 
 DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
-
+LOG_DIR = "/home/rsilva/logs/"
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='/home/rsilva/logs/basic_siamese.log',
+                    filename=os.path.join(LOG_DIR, 'basic_siamese.log'),
                     filemode='w')
 logger = logging.getLogger(__name__)
 
@@ -37,8 +37,7 @@ def imagem_aleatoria(img_groups, group_names, gid):
     gname = group_names[gid]
     photos = img_groups[gname]
     pid = np.random.choice(np.arange(len(photos)), size=1)[0]
-    pname = photos[pid]
-    #return "{}_{}.jpg".format(gname, pname)
+    pname = photos[pid]    
     return pname
 
 def criar_triplas(image_dir):
@@ -57,8 +56,7 @@ def criar_triplas(image_dir):
         for _i, _r in image_cache.items():
             if index != _i:
                 _match = set(row["categories"]).intersection(_r["categories"])
-                if len(_match) > 0:
-                    #print(row["filename"], _r["filename"], "similares")
+                if len(_match) > 0:                    
                     triplas.append((row["filename"], _r["filename"], 1))
                 else:
                     triplas.append((row["filename"], _r["filename"], 0))
@@ -80,6 +78,8 @@ def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
     logging.info("Gerando triplas")
     while True:
         
+        logging.info("%s batches of %s generated" % (num_batches, batch_size))
+
         # loop once per epoch
         if shuffle:
             indices = np.random.permutation(np.arange(len(image_triples)))
@@ -87,9 +87,7 @@ def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
             indices = np.arange(len(image_triples))
         shuffled_triples = [image_triples[ix] for ix in indices]
         num_batches = len(shuffled_triples) // batch_size
-
-        logging.info("%s batches of %s generated" % (num_batches, batch_size))
-
+       
         for bid in range(num_batches):
             # loop once per batch
             images_left, images_right, labels = [], [], []
@@ -185,11 +183,14 @@ lote_de_validacao = gerar_triplas_em_lote(dados_teste, TAMANHO_LOTE, shuffle=Fal
 num_passos_treinamento = len(dados_treino) // NUM_EPOCAS
 num_passos_validacao = len(dados_teste) // NUM_EPOCAS
 
+csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs.log')
+
 historico = model.fit_generator(lote_de_treinamento,
                             steps_per_epoch=num_passos_treinamento,
                             epochs=NUM_EPOCAS,
                             validation_data=lote_de_validacao,
-                            validation_steps=num_passos_validacao)
+                            validation_steps=num_passos_validacao,
+                            callbacks=[csv_logger])
 
 logging.info("Salvando o modelo em disco")
 # serialize model to JSON
@@ -202,4 +203,3 @@ model.save_weights("models/imagenet_weights.h5")
 logging.info("Modelo salvo")
 
 logging.info("Finalizado")
-
