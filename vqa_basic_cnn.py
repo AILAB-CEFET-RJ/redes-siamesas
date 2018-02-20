@@ -185,7 +185,7 @@ num_passos_validacao = len(dados_teste) // NUM_EPOCAS
 
 model_file = "models/best.hdf"
 
-csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs.log')
+csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs.log'))
 model_checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
 callbacks_list = [csv_logger, model_checkpoint]
