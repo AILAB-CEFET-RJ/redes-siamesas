@@ -21,7 +21,7 @@ import pandas as pd
 
 from sklearn.utils import shuffle
 
-DATA_DIR = "/home/ramon/datasets/vqa/"
+DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 
 
@@ -34,7 +34,7 @@ def imagem_aleatoria(img_groups, group_names, gid):
     return pname
 
 def criar_triplas(image_dir):
-    data = pd.read_csv(os.path.join(DATA_DIR, 'train2014_500.csv'), sep=",", header=1, names=["img_id", "category_id", "filename"])
+    data = pd.read_csv(os.path.join(DATA_DIR, 'train_2014_50.csv'), sep=",", header=1, names=["img_id", "category_id", "filename"])
     image_cache = {}
     for index, row in data.iterrows():
         id = row["img_id"]
@@ -57,19 +57,19 @@ def criar_triplas(image_dir):
     return shuffle(triplas)
 
 def carregar_imagem(image_name):
-    log.debug("carragendo imagem : %s", image_name)
+    print("carragendo imagem : %s", image_name)
     if image_name not in image_cache:
-        log.debug("cache miss")
+        print("cache miss")
         image = plt.imread(os.path.join(IMAGE_DIR, image_name)).astype(np.float32)
         image = imresize(image, (224, 224))
         image = np.divide(image, 256)
         image_cache[image_name] = image
     else:
-        log.debug("cache hit")
+        print("cache hit")
     return image_cache[image_name]
 
 def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
-    log.info("Gerando triplas")
+    print("Gerando triplas")
     while True:
         
         # loop once per epoch
@@ -80,7 +80,7 @@ def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
         shuffled_triples = [image_triples[ix] for ix in indices]
         num_batches = len(shuffled_triples) // batch_size
 
-        log.debug("%s batches of %s generated", num_batches, batch_size)
+        print("%s batches of %s generated", num_batches, batch_size)
 
         for bid in range(num_batches):
             # loop once per batch

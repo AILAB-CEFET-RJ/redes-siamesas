@@ -32,7 +32,7 @@ from utils import calc
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='logs/train_siamese.log',
+                    filename='/home/rsilva/logs/train_siamese.log',
                     filemode='w')
 logger = logging.getLogger(__name__)
 
