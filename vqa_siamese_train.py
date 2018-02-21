@@ -24,7 +24,7 @@ from sklearn.utils import shuffle
 
 import logging
 
-from utils import calc
+from utils import calc, dados
 
 #################################################################
 #               Configurando logs de execuçao                   #
@@ -35,6 +35,7 @@ logging.basicConfig(level=logging.INFO,
                     filename='/home/rsilva/logs/train_siamese.log',
                     filemode='w')
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler())
 
 np.random.seed(7)
 
@@ -220,9 +221,11 @@ NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
-lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
-logger.info("Criando triplas")
-image_triples = criar_triplas(lista_imagens)
+
+TRIPLES_FILES = os.path.join("data/", "triples_train.csv")
+#lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
+logger.info("Carregando triplas")
+image_triples = dados.carregar_triplas()
 logger.info("Pronto !!!")
 
 tamanho = len(image_triples)
