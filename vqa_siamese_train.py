@@ -233,7 +233,7 @@ scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 TRIPLES_FILES = os.path.join("data/", "triples_train.csv")
 #lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 logger.info("Carregando triplas")
-image_triples = dados.carregar_triplas()
+image_triples = dados.carregar_triplas(TRIPLES_FILES)
 logger.info("Pronto !!!")
 
 tamanho = len(image_triples)
