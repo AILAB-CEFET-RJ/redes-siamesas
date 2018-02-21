@@ -22,7 +22,7 @@ from scipy.spatial.distance import pdist
 from xgboost import XGBClassifier
 import itertools
 import pandas as pd
-from sklearn.utils import shuffle
+from random import shuffle
 
 import logging
 
