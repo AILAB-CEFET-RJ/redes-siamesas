@@ -34,36 +34,42 @@ logging.basicConfig(level=logging.INFO,
                     filemode='w')
 logger = logging.getLogger(__name__)
 
-
-def imagem_aleatoria(img_groups, group_names, gid):
+def get_random_image(img_groups, group_names, gid):
     gname = group_names[gid]
     photos = img_groups[gname]
     pid = np.random.choice(np.arange(len(photos)), size=1)[0]
-    pname = photos[pid]    
+    pname = photos[pid]
     return pname
 
 def criar_triplas(image_dir):
-    data = pd.read_csv(os.path.join(DATA_DIR, 'train_2014_50.csv'), sep=",", header=1, names=["img_id", "filename", "category_id"])
-    image_cache = {}
+    data = pd.read_csv(lista_imagens, sep=",", header=0, names=["image_id","filename","category_id"])
+    img_groups = {}
+    
     for index, row in data.iterrows():
-        id = row["img_id"]
-        if(id in image_cache):
-            image_cache[id]["categories"].append(row["category_id"])
+        pid = row["filename"]
+        gid = row["category_id"]
+        
+        if gid in img_groups:
+            img_groups[gid].append(pid)
         else:
-            image_cache[id] = {"img_id" : id, "filename" : row["filename"], "categories" : [row["category_id"]]}
-    #Triplas que serao retornadas
-    triplas = []
-
-    for index, row in image_cache.items():
-        for _i, _r in image_cache.items():
-            if index != _i:
-                _match = set(row["categories"]).intersection(_r["categories"])
-                if len(_match) > 0:                    
-                    triplas.append((row["filename"], _r["filename"], 1))
-                else:
-                    triplas.append((row["filename"], _r["filename"], 0))
-    return shuffle(triplas)
-
+            img_groups[gid] = [pid]
+    
+    pos_triples, neg_triples = [], []
+    #A triplas positivas são a combinação de imagens com a mesma categoria
+    for key in img_groups.keys():
+        triples = [(x[0], x[1], 1) 
+                 for x in itertools.combinations(img_groups[key], 2)]
+        pos_triples.extend(triples)
+    # é necessário o mesmo número de exemplos negativos
+    group_names = list(img_groups.keys())
+    for i in range(len(pos_triples)):
+        g1, g2 = np.random.choice(np.arange(len(group_names)), size=2, replace=False)
+        left = get_random_image(img_groups, group_names, g1)
+        right = get_random_image(img_groups, group_names, g2)
+        neg_triples.append((left, right, 0))
+    pos_triples.extend(neg_triples)
+    shuffle(pos_triples)
+    return pos_triples 
 def carregar_imagem(image_name):
     logging.debug("carragendo imagem : %s" % image_name)
     if image_name not in image_cache:
@@ -141,11 +147,12 @@ def criar_instancia_rede_neural(entrada):
 logger.info("####################### Inicio da Execucao #######################")
 
 logging.info("Gerando triplas")
-triplas = criar_triplas(IMAGE_DIR)
+lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
+triplas = criar_triplas(lista_imagens)
 
 logging.debug("# triplas de imagens: %d" % len(triplas))
 
-TAMANHO_LOTE = 64
+TAMANHO_LOTE = 184 
 
 divisor = int(len(triplas) * 0.7)
 dados_treino, dados_teste = triplas[0:divisor], triplas[divisor:]
@@ -176,7 +183,7 @@ model = Model(inputs=[imagem_esquerda, imagem_direita], outputs=pred)
 #model.summary()
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
-NUM_EPOCAS = 10
+NUM_EPOCAS = 1 
 
 image_cache = {}
 lote_de_treinamento = gerar_triplas_em_lote(dados_treino, TAMANHO_LOTE, shuffle=True)
