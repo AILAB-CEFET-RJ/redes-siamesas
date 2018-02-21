@@ -147,8 +147,8 @@ def carregar_vetores(vector_file):
 #################################################################
 
 def preprocessar_dados(vec_dict, triplas, train_size=0.7):
-    """xdata, ydata = [], []
-    
+    xdata, ydata = [], []
+    """
     for image_triple in triplas:
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]      
@@ -159,8 +159,9 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
     """
     ydata = []
     for image_triple in triplas:
-        data.append(image_triple[2])
-    X = pdist(amostra)
+        ydata.append(image_triple[2])
+        xdata.append([ vec_dict[image_triple[0]], vec_dict[image_triple[1]] ])
+    X = pdist(xdata)
     y = np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
    
