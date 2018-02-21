@@ -17,6 +17,8 @@ from sklearn.model_selection import train_test_split, KFold
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.svm import LinearSVC
+from scipy.spatial.distance import pdist 
+
 from xgboost import XGBClassifier
 import itertools
 import pandas as pd
@@ -145,7 +147,7 @@ def carregar_vetores(vector_file):
 #################################################################
 
 def preprocessar_dados(vec_dict, triplas, train_size=0.7):
-    xdata, ydata = [], []
+    """xdata, ydata = [], []
     
     for image_triple in triplas:
         X1 = vec_dict[image_triple[0]]
@@ -154,6 +156,12 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
         xdata.append(distance)
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
+    """
+    ydata = []
+    for image_triple in triplas:
+        data.append(image_triple[2])
+    X = pdist(amostra)
+    y = np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
    
     return Xtrain, Xtest, ytrain, ytest
