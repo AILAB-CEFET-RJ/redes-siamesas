@@ -226,7 +226,7 @@ image_triples = criar_triplas(lista_imagens)
 logger.info("Pronto !!!")
 
 tamanho = len(image_triples)
-TAMANHO_LOTE = 100
+TAMANHO_LOTE = 196
 quantidade_de_lotes = (tamanho // TAMANHO_LOTE) + 1
 
 logger.debug('Triplas criadas: %s', tamanho)
@@ -253,17 +253,21 @@ for i in range(0, quantidade_de_lotes):
         amostra = image_triples[start:]
     else:
         amostra = image_triples[start:end]
-   
-    logger.debug("inicio %s, fim %s", start, end)
-            
+                   
     Xtrain, Xtest, ytrain, ytest = preprocessar_dados(vec_dict, amostra)
 
-    #logger.debug("%s %s %s %s", Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
-    #logger.debug("Validação cruzada")
+    logger.info("# Validação cruzada #")
+    
+    clf.fit(Xtrain, ytrain)
+    ytest_ = clf.predict(Xtest)
+    score = accuracy_score(ytest_, ytest)
+    logger.debug("fold {:d}, score: {:.3f}".format(kid, score))
 
-    #logger.debug( "%s - %s", Xtrain[0], ytrain[0] )
+    if score > best_score:
+       best_score = score
+       best_clf = clf
 
-    best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 10, best_score, best_clf)
+    #best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 10, best_score, best_clf)
     scores[3, 2] = best_score
     X.extend(Xtest)
     Y.extend(ytest)
