@@ -31,7 +31,7 @@ from utils import calc, dados
 #################################################################
 #               Configurando logs de execuçao                   #
 #################################################################
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
                     filename='/home/rsilva/logs/train_siamese.log',
