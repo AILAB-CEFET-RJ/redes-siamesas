@@ -11,8 +11,31 @@ from random import shuffle
 import logging
 
 
-from utils import dados
-from utils import neuralnetwork as nn
+from scipy.misc import imresize
+from keras.applications import resnet50, xception
+from keras.models import Model
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.externals import joblib
+from sklearn.model_selection import train_test_split, KFold
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.svm import LinearSVC
+
+from xgboost import XGBClassifier
+
+import argparse
+import logging
+
+
+parser = argparse.ArgumentParser(description='Classificador para Redes Siamesas')
+parser.add_argument('-d', help='Name of distance files')
+parser.add_argument('-c', help='Name of classifier method eg. XGBoost', default='xgboost')
+
+args = parser.parse_args()
 
 seed = 7
 np.random.seed(seed)
@@ -23,37 +46,67 @@ logging.basicConfig(level=logging.DEBUG,
                     filemode='w')
 
 DATA_DIR="/media/ramon/dados/dataset/vqa/"
-VECTOR_FILE = os.path.join(DATA_DIR, "resnet-vectors.tsv")
-TRIPLES_FILES = os.path.join("data/", "triples_train.csv")
+DISTANCE_FILE = os.path.join("data", args.d)
 BATCH_SIZE = 32
 NUM_EPOCHS = 10
 VECTOR_SIZE = 2048
 
 logging.debug("DATA_DIR %s", DATA_DIR)
-logging.debug("VECTOR_FILE %s", VECTOR_FILE)
-logging.debug("TRIPLES_FILES %s", TRIPLES_FILES)
 logging.debug("BATCH_SIZE %s", BATCH_SIZE)
 logging.debug("NUM_EPOCHS %s", NUM_EPOCHS)
 logging.debug("VECTOR_SIZE %s", NUM_EPOCHS)
 
 logging.info("Carregando as triplas de imagens...")
-image_triples = dados.carregar_triplas(TRIPLES_FILES)
 
-logging.info("Carregando os vetores de imagens...")
-vec_dict = dados.carregar_vetores(VECTOR_FILE)
 
-#X = image_triples[...,0:2]
-#Y = image_triples[:,2].astype(int)
+#################################################################
+#                    Relatório de treino/test                   #
+#################################################################
+def test_report(clf, Xtest, ytest):
+    ytest_ = clf.predict(Xtest)
+    logging.info("\nAccuracy Score: {:.3f}".format(accuracy_score(ytest_, ytest)))
+    logging.info("\nConfusion Matrix")
+    logging.info("%s", confusion_matrix(ytest_, ytest))
+    logging.info("\nClassification Report")
+    logging.info("%s", classification_report(ytest_, ytest))
 
-train_triples, val_triples, test_triples = dados.train_test_split(image_triples, splits=[0.7,0.1,0.2])
+#################################################################
+#                    Salvar / Carregar modelos                  #
+#################################################################
+def get_model_file(data_dir, vec_name, clf_name):
+    return os.path.join(data_dir, "models", "{:s}-{:s}-dot.pkl"
+                        .format(vec_name, clf_name))
 
-logging.info("train_triples %d", len(train_triples))
-logging.info("val_triples %d", len(val_triples))
-logging.info("test_triples %d", len(test_triples))
+def save_model(model, model_file):
+    joblib.dump(model, model_file)
 
-train_gen = dados.gerador_de_lotes(train_triples, VECTOR_SIZE, vec_dict, BATCH_SIZE)
-val_gen = dados.gerador_de_lotes(val_triples, VECTOR_SIZE, vec_dict, BATCH_SIZE)
+logging.info("Reading distance vectros")
+df = pd.read_csv(DISTANCE_FILE, sep=",", header=0, names=["distance", "similar"])
 
-model = nn.base_model(VECTOR_SIZE)
+values = df.values
 
-logging.info("Finalizado")
+X = values[:,0:1]
+y = values[:,1].astype(int)
+
+Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=0.7)
+
+clf = XGBClassifier()
+
+logging.info("ajustando o modelo...")
+
+clf.fit(Xtrain, ytrain)
+
+logging.info("pronto !!!")
+
+logging.info("Testando o modelo...")
+ytest_ = clf.predict(Xtest)
+logging.info("pronto !!!")
+score = accuracy_score(ytest_, ytest)
+
+logging.info("Score %s" % score)
+
+test_report(clf, Xtest, ytest)
+logging.debug("Salvando model em %s", DATA_DIR)
+save_model(clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
+
+logging.info("Finalizado com sucesso !!!")

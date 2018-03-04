@@ -23,9 +23,9 @@ import pandas as pd
 import logging
 from sklearn.utils import shuffle
 
-DATA_DIR = "/home/rsilva/datasets/vqa/"
+DATA_DIR = "/media/ramon/dados/dataset/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
-LOG_DIR = "/home/rsilva/logs/"
+LOG_DIR = "/home/ramon/logs/"
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -152,7 +152,7 @@ triplas = criar_triplas(lista_imagens)
 
 logging.debug("# triplas de imagens: %d" % len(triplas))
 
-TAMANHO_LOTE = 184 
+TAMANHO_LOTE = 64 
 
 divisor = int(len(triplas) * 0.7)
 dados_treino, dados_teste = triplas[0:divisor], triplas[divisor:]

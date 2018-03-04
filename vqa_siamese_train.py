@@ -34,7 +34,7 @@ from utils import calc, dados
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='/home/rsilva/logs/train_siamese.log',
+                    filename='/home/ramon/logs/train_siamese.log',
                     filemode='w')
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -148,7 +148,8 @@ def carregar_vetores(vector_file):
 
 def preprocessar_dados(vec_dict, triplas, train_size=0.7):
     xdata, ydata = [], []
-    """
+    i = 0
+    tam = len(triplas)
     for image_triple in triplas:
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]      
@@ -156,15 +157,11 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
         xdata.append(distance)
         ydata.append(image_triple[2])
     X, y = np.array(xdata), np.array(ydata)
-    """
-    ydata = []
-    for image_triple in triplas:
-        ydata.append(image_triple[2])
-        xdata.append([ vec_dict[image_triple[0]], vec_dict[image_triple[1]] ])
-    X = pdist(xdata)
-    y = np.array(ydata)
     Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
-   
+    i = i + 1
+    if(i % 1000 == 0):
+        logger.info("Processado %d de %d", i,  tam)
+    
     return Xtrain, Xtest, ytrain, ytest
 
 #################################################################
@@ -231,13 +228,13 @@ NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
 
-TRIPLES_FILES = os.path.join("data/", "triples_train.csv")
+TRIPLES_FILES = os.path.join("data/", "triples_train_500.csv")
 #lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 logger.info("Carregando triplas")
 image_triples = dados.carregar_triplas(TRIPLES_FILES)
 logger.info("Pronto !!!")
 
-tamanho = len(image_triples)
+"""tamanho = len(image_triples)
 TAMANHO_LOTE = 196
 quantidade_de_lotes = (tamanho // TAMANHO_LOTE) + 1
 
@@ -246,6 +243,7 @@ logger.debug('Tamanho do lote: %s', TAMANHO_LOTE)
 logger.debug('Quantidade de lotes: %s', quantidade_de_lotes)
 
 logger.info("Iniciando o Pré-processando dados")
+"""
 
 Xtrain, Xtest, ytrain, ytest = [], [], [], []
 X, Y = [], []
@@ -254,6 +252,14 @@ vec_dict = carregar_vetores(VECTOR_FILE)
 clf = XGBClassifier()
 best_clf, best_score = None, 0.0
 
+########################################
+Xtrain, Xtest, ytrain, ytest = preprocessar_dados(vec_dict, image_triples)
+best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 10, best_score, best_clf)
+scores[3, 2] = best_score
+X.extend(Xtest)
+Y.extend(ytest)
+########################################
+"""
 for i in range(0, quantidade_de_lotes):
     
     logger.info("Iterando sobre o lote %s/%s", i, quantidade_de_lotes)
@@ -283,7 +289,8 @@ for i in range(0, quantidade_de_lotes):
     scores[3, 2] = best_score
     X.extend(Xtest)
     Y.extend(ytest)
-    
+"""
+
 test_report(best_clf, Xtest, ytest)
 logger.debug("Salvando model em %s", DATA_DIR)
 save_model(best_clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
