@@ -1,6 +1,6 @@
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+#os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import sys
 
@@ -55,12 +55,12 @@ def criar_triplas(image_dir):
             img_groups[gid] = [pid]
     
     pos_triples, neg_triples = [], []
-    #A triplas positivas são a combinação de imagens com a mesma categoria
+    #A triplas positivas sao a combinacao de imagens com a mesma categoria
     for key in img_groups.keys():
         triples = [(x[0], x[1], 1) 
                  for x in itertools.combinations(img_groups[key], 2)]
         pos_triples.extend(triples)
-    # é necessário o mesmo número de exemplos negativos
+    # e necessario o mesmo numero de exemplos negativos
     group_names = list(img_groups.keys())
     for i in range(len(pos_triples)):
         g1, g2 = np.random.choice(np.arange(len(group_names)), size=2, replace=False)
@@ -130,7 +130,6 @@ def criar_instancia_rede_neural(entrada):
     seq.add(Conv2D(20, kernel_size=5, padding="same", input_shape=entrada))
     seq.add(Activation("relu"))
     seq.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-    
     # CONV => RELU => POOL
     seq.add(Conv2D(50, kernel_size=5, padding="same"))
     seq.add(Activation("relu"))
@@ -147,7 +146,7 @@ def criar_instancia_rede_neural(entrada):
 logger.info("####################### Inicio da Execucao #######################")
 
 logging.info("Gerando triplas")
-lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_500.csv')
 triplas = criar_triplas(lista_imagens)
 
 logging.debug("# triplas de imagens: %d" % len(triplas))
