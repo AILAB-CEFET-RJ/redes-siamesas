@@ -1,11 +1,11 @@
 import os
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-#os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import sys
 
 from keras import backend as K
-from keras.applications import vgg16
+from keras.applications import resnet50
 from keras.layers import Input, merge
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Activation, Dense, Dropout, Flatten, Lambda
@@ -23,14 +23,14 @@ import pandas as pd
 import logging
 from sklearn.utils import shuffle
 
-DATA_DIR = "/home/rsilva/datasets/vqa/"
+DATA_DIR = os.environ["DATA_DIR"]
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 LOG_DIR = "/home/rsilva/logs/"
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename=os.path.join(LOG_DIR, 'basic_siamese.log'),
+                    filename=os.path.join(LOG_DIR, 'vqa_resnet.log'),
                     filemode='w')
 logger = logging.getLogger(__name__)
 
@@ -146,16 +146,12 @@ def criar_instancia_rede_neural(entrada):
 logger.info("####################### Inicio da Execucao #######################")
 
 logging.info("Gerando triplas")
-<<<<<<< HEAD
-lista_imagens = os.path.join(DATA_DIR, 'train_2014_1k.csv')
-=======
-lista_imagens = os.path.join(DATA_DIR, 'train_500.csv')
->>>>>>> 930fc53300200b6122b3c60bd5395775443fed1e
+lista_imagens = os.path.join(DATA_DIR, 'train_50.csv')
 triplas = criar_triplas(lista_imagens)
 
 logging.debug("# triplas de imagens: %d" % len(triplas))
 
-TAMANHO_LOTE = 192 
+TAMANHO_LOTE = 64 
 
 divisor = int(len(triplas) * 0.7)
 dados_treino, dados_teste = triplas[0:divisor], triplas[divisor:]
@@ -168,8 +164,10 @@ rede_neural = criar_instancia_rede_neural(formato_entrada)
 imagem_esquerda = Input(shape=formato_entrada)
 imagem_direita  = Input(shape=formato_entrada)
 
-vetor_saida_esquerda = rede_neural(imagem_esquerda)
-vetor_saida_direita  = rede_neural(imagem_direita)
+model = ResNet50(weights='imagenet', include_top=True)
+
+vetor_saida_esquerda = model(imagem_esquerda)
+vetor_saida_direita  = model(imagem_direita)
 
 distancia = Lambda(calcular_distancia, 
                 output_shape=formato_saida_distancia)([vetor_saida_esquerda, vetor_saida_direita])
@@ -186,7 +184,7 @@ model = Model(inputs=[imagem_esquerda, imagem_direita], outputs=pred)
 #model.summary()
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
-NUM_EPOCAS = 10 
+NUM_EPOCAS = 1 
 
 image_cache = {}
 lote_de_treinamento = gerar_triplas_em_lote(dados_treino, TAMANHO_LOTE, shuffle=True)
@@ -195,7 +193,7 @@ lote_de_validacao = gerar_triplas_em_lote(dados_teste, TAMANHO_LOTE, shuffle=Fal
 num_passos_treinamento = len(dados_treino) // NUM_EPOCAS
 num_passos_validacao = len(dados_teste) // NUM_EPOCAS
 
-csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs.log'))
+csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs_resnet.log'))
 model_checkpoint = ModelCheckpoint("models/best.hdf", monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
 callbacks_list = [csv_logger, model_checkpoint]
