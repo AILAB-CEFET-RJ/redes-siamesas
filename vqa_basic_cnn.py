@@ -23,9 +23,9 @@ import pandas as pd
 import logging
 from sklearn.utils import shuffle
 
-DATA_DIR = "/media/ramon/dados/dataset/vqa/"
+DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
-LOG_DIR = "/home/ramon/logs/"
+LOG_DIR = "/home/rsilva/logs/"
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -147,12 +147,12 @@ def criar_instancia_rede_neural(entrada):
 logger.info("####################### Inicio da Execucao #######################")
 
 logging.info("Gerando triplas")
-lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014_1k.csv')
 triplas = criar_triplas(lista_imagens)
 
 logging.debug("# triplas de imagens: %d" % len(triplas))
 
-TAMANHO_LOTE = 64 
+TAMANHO_LOTE = 192 
 
 divisor = int(len(triplas) * 0.7)
 dados_treino, dados_teste = triplas[0:divisor], triplas[divisor:]
@@ -183,7 +183,7 @@ model = Model(inputs=[imagem_esquerda, imagem_direita], outputs=pred)
 #model.summary()
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
-NUM_EPOCAS = 1 
+NUM_EPOCAS = 10 
 
 image_cache = {}
 lote_de_treinamento = gerar_triplas_em_lote(dados_treino, TAMANHO_LOTE, shuffle=True)

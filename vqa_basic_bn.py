@@ -23,14 +23,14 @@ import pandas as pd
 import logging
 from sklearn.utils import shuffle
 
-DATA_DIR = "/media/ramon/dados/dataset/vqa/"
+DATA_DIR = "/home/rsilva/datasets/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
-LOG_DIR = "/home/ramon/logs/"
+LOG_DIR = "/home/rsilva/logs/"
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename=os.path.join(LOG_DIR, 'basic_siamese.log'),
+                    filename=os.path.join(LOG_DIR, 'basic_siamese_batch_norm.log'),
                     filemode='w')
 logger = logging.getLogger(__name__)
 
@@ -151,7 +151,7 @@ def criar_instancia_rede_neural(entrada):
 logger.info("####################### Inicio da Execucao #######################")
 
 logging.info("Gerando triplas")
-lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014_1k.csv')
 triplas = criar_triplas(lista_imagens)
 
 logging.debug("# triplas de imagens: %d" % len(triplas))
