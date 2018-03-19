@@ -34,7 +34,7 @@ from utils import calc, dados
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='/home/ramon/logs/train_siamese.log',
+                    filename='logs/train_siamese.log',
                     filemode='w')
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
