@@ -252,4 +252,5 @@ test_report(best_clf, Xtest, ytest)
 logger.debug("Salvando model em %s", DATA_DIR)
 save_model(best_clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
 
+
 logger.info("Finalizado com sucesso !!!")
