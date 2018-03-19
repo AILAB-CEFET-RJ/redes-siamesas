@@ -164,7 +164,7 @@ rede_neural = criar_instancia_rede_neural(formato_entrada)
 imagem_esquerda = Input(shape=formato_entrada)
 imagem_direita  = Input(shape=formato_entrada)
 
-model = ResNet50(weights='imagenet', include_top=True)
+model = resnet50.ResNet50(weights='imagenet', include_top=True)
 
 vetor_saida_esquerda = model(imagem_esquerda)
 vetor_saida_direita  = model(imagem_direita)
