@@ -12,13 +12,13 @@ from keras.layers import Input
 from keras.preprocessing.image import img_to_array, load_img
 
 
-DATA_DIR = "/home/rsilva/datasets"
-#DATA_DIR = "/Volumes/Externo/cefet/dataset/"
+#DATA_DIR = "/home/rsilva/datasets"
+DATA_DIR = "/media/ramon/dados/dataset/vqa/"
 IMAGE_DIR = os.path.join(DATA_DIR, "vqa")
-MODELS_DIR = "models";
+MODELS_DIR = os.path.join(DATA_DIR, "models");
 
 # load json and create model
-json_file = open(os.path.join(MODELS_DIR, "imagenet.json"), 'r')
+json_file = open(os.path.join(MODELS_DIR, "resnet50-xgb-dot.pkl"), 'r')
 
 loaded_model_json = json_file.read()
 json_file.close()
