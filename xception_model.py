@@ -1,14 +1,15 @@
-#################################################################
-#             Script para gerar vetores das imagens             #
-#################################################################
-
 import os
-import numpy as np
-import matplotlib.pyplot as plt
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
+import logging
+import numpy as np
+from random import shuffle
 from keras.models import Model
+import matplotlib.pyplot as plt
 from scipy.misc import imresize
-from keras.applications import resnet50, xception
+from keras.applications import xception
+
 
 #################################################################
 #               Gerando lotes para treinamento                  #
@@ -25,10 +26,10 @@ def image_batch_generator(image_names, batch_size):
 def vectorize_images(image_dir, image_size, preprocessor, 
                      model, vector_file, batch_size=32):
     
-    if( os.path.isfile(vector_file) ):
+    """if( os.path.isfile(vector_file) ):
         print(vector_file,"already exists")
         return
-    
+    """
     image_names = os.listdir(image_dir)
     num_vecs = 0
     fvec = open(vector_file, "w")
@@ -54,21 +55,29 @@ def vectorize_images(image_dir, image_size, preprocessor,
 #                          Constantes                           #
 #################################################################
 IMAGE_SIZE = 299
-DATA_DIR    ="/media/ramon/dados/dataset/vqa/"
+DATA_DIR    = os.environ["DATA_DIR"]
 IMAGE_DIR   = os.path.join(DATA_DIR, 'mscoco')
-VECTOR_FILE = os.path.join("../data/", "resnet-vectors.tsv")
+MODELS_DIR  = os.path.join(DATA_DIR, "models")
+VECTOR_FILE = os.path.join(MODELS_DIR, "xception-vectors.tsv")
+
 
 #################################################################
 #                       Inicio da Execucao                      #
 #################################################################
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='logs/xception_training.log',
+                    filemode='w')
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler())
+
+
 xception_model = xception.Xception(weights="imagenet", include_top=True)
 
-resnet_model = resnet50.ResNet50(weights="imagenet", include_top=True)
-
-model = Model(inputs=resnet_model.input,
-             outputs=resnet_model.get_layer("flatten_1").output)
-preprocessor = resnet50.preprocess_input
+model = Model(input=xception_model.input,
+             output=xception_model.get_layer("avg_pool").output)
+preprocessor = xception.preprocess_input
 
 vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
-
-print(VECTOR_FILE, "criado com sucesso !!!")
