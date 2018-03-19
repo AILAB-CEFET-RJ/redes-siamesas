@@ -168,18 +168,11 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
 #                       validação cruzada                       #
 #################################################################
 
-def validacao_cruzada(X, y, clf, k=10, best_score=0.0, best_clf=None):    
-    kfold = KFold(k)
-    for kid, (train, test) in enumerate(kfold.split(X, y)):
-        Xtrain, Xtest, ytrain, ytest = X[train], X[test], y[train], y[test]
-        clf.fit(Xtrain, ytrain)
-        ytest_ = clf.predict(Xtest)
-        score = accuracy_score(ytest_, ytest)
-        logger.debug("fold {:d}, score: {:.3f}".format(kid, score))
-        if score > best_score:
-            best_score = score
-            best_clf = clf
-    return best_clf, best_score
+def validacao_cruzada(X, y, clf, best_score=0.0, best_clf=None):    
+    clf.fit(X, y)
+    ytest_ = clf.predict(Xtest)
+    score = accuracy_score(ytest_, ytest)                
+    return clf, score
 
 #################################################################
 #                    Relatório de treino/test                   #
@@ -228,22 +221,14 @@ NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
 
-TRIPLES_FILES = os.path.join("data/", "triples_train_500.csv")
+TRIPLES_FILES = os.path.join("data/", "triples_train.csv")
 #lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 logger.info("Carregando triplas")
 image_triples = dados.carregar_triplas(TRIPLES_FILES)
 logger.info("Pronto !!!")
 
-"""tamanho = len(image_triples)
-TAMANHO_LOTE = 196
-quantidade_de_lotes = (tamanho // TAMANHO_LOTE) + 1
-
+tamanho = len(image_triples)
 logger.debug('Triplas criadas: %s', tamanho)
-logger.debug('Tamanho do lote: %s', TAMANHO_LOTE)
-logger.debug('Quantidade de lotes: %s', quantidade_de_lotes)
-
-logger.info("Iniciando o Pré-processando dados")
-"""
 
 Xtrain, Xtest, ytrain, ytest = [], [], [], []
 X, Y = [], []
@@ -253,43 +238,15 @@ clf = XGBClassifier()
 best_clf, best_score = None, 0.0
 
 ########################################
+logger.info('pre-pocessando dados')
 Xtrain, Xtest, ytrain, ytest = preprocessar_dados(vec_dict, image_triples)
+logger.info('pronto')
+logger.info('validação cruzada')
 best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 10, best_score, best_clf)
 scores[3, 2] = best_score
 X.extend(Xtest)
 Y.extend(ytest)
 ########################################
-"""
-for i in range(0, quantidade_de_lotes):
-    
-    logger.info("Iterando sobre o lote %s/%s", i, quantidade_de_lotes)
-    
-    start = i * TAMANHO_LOTE
-    end = start + TAMANHO_LOTE - 1
-    
-    if(i == quantidade_de_lotes):
-        amostra = image_triples[start:]
-    else:
-        amostra = image_triples[start:end]
-                   
-    Xtrain, Xtest, ytrain, ytest = preprocessar_dados(vec_dict, amostra)
-
-    logger.info("# Validação cruzada #")
-    
-    clf.fit(Xtrain, ytrain)
-    ytest_ = clf.predict(Xtest)
-    score = accuracy_score(ytest_, ytest)
-    logger.debug("fold {:d}, score: {:.3f}".format(kid, score))
-
-    if score > best_score:
-       best_score = score
-       best_clf = clf
-
-    #best_clf, best_score = validacao_cruzada(Xtrain, ytrain, clf, 10, best_score, best_clf)
-    scores[3, 2] = best_score
-    X.extend(Xtest)
-    Y.extend(ytest)
-"""
 
 test_report(best_clf, Xtest, ytest)
 logger.debug("Salvando model em %s", DATA_DIR)
