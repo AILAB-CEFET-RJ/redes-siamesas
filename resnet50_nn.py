@@ -80,7 +80,7 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
     for image_triple in triplas:
         X1 = vec_dict[image_triple[0]]
         X2 = vec_dict[image_triple[1]]      
-        distance = calc.euclidian_distance(X1, X2)       
+        distance = calc.euclidian_distance([X1, X2])       
         xdata.append(distance)
         ydata.append(image_triple[2])
         i = i + 1
@@ -140,7 +140,7 @@ scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 start = time.time()
 
 step_start = time.time()
-lista_imagens = os.path.join(DATA_DIR, 'train_500.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014_1k.csv')
 logger.info("gerando triplas")
 image_triples = criar_triplas(lista_imagens)
 step_elapsed = time.time() - step_start
