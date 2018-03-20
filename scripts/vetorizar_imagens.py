@@ -53,7 +53,7 @@ def vectorize_images(image_dir, image_size, preprocessor,
 #################################################################
 #                          Constantes                           #
 #################################################################
-IMAGE_SIZE = 299
+IMAGE_SIZE = 224
 DATA_DIR    ="/media/ramon/dados/dataset/vqa/"
 IMAGE_DIR   = os.path.join(DATA_DIR, 'mscoco')
 VECTOR_FILE = os.path.join("../data/", "resnet-vectors.tsv")
