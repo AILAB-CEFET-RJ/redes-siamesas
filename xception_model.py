@@ -43,11 +43,11 @@ def vectorize_images(image_dir, image_size, preprocessor,
         vectors = model.predict(X)
         for i in range(vectors.shape[0]):
             if num_vecs % 100 == 0:
-                print("{:d} vectors generated".format(num_vecs))
+                logger.info("%s vectors generated",num_vecs)
             image_vector = ",".join(["{:.5e}".format(v) for v in vectors[i].tolist()])
             fvec.write("{:s}\t{:s}\n".format(image_batch[i], image_vector))
             num_vecs += 1
-    print("{:d} vectors generated".format(num_vecs))
+    logger.info("%s vectors generated", num_vecs)
     fvec.close()
 
 
@@ -80,4 +80,8 @@ model = Model(input=xception_model.input,
              output=xception_model.get_layer("avg_pool").output)
 preprocessor = xception.preprocess_input
 
+logger.info("Vetorizindo imagens")
 vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
+
+
+logger.info("Finalizado com sucesso !!!")
