@@ -11,6 +11,8 @@ import pandas as pd
 from random import shuffle
 from utils import calc, dados
 from sklearn.model_selection import train_test_split
+from xgboost import XGBClassifier
+from sklearn.externals import joblib
 
 DATA_DIR = os.environ["DATA_DIR"]
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
