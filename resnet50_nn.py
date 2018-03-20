@@ -11,7 +11,7 @@ import pandas as pd
 from random import shuffle
 from utils import calc, dados
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from xgboost import XGBClassifier
 from sklearn.externals import joblib
 
