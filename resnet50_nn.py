@@ -142,7 +142,7 @@ scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 start = time.time()
 
 step_start = time.time()
-lista_imagens = os.path.join(DATA_DIR, 'train_2014_1k.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014_50.csv')
 logger.info("gerando triplas")
 image_triples = criar_triplas(lista_imagens)
 step_elapsed = time.time() - step_start
