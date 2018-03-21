@@ -35,12 +35,12 @@ def criar_triplas(lista_imagens):
             img_groups[gid] = [pid]
     
     pos_triples, neg_triples = [], []
-    #A triplas positivas são a combinação de imagens com a mesma categoria
+    #A triplas positivas sao a combinacao de imagens com a mesma categoria
     for key in img_groups.keys():
         triples = [(x[0], x[1], 1) 
                  for x in itertools.combinations(img_groups[key], 2)]
         pos_triples.extend(triples)
-    # é necessário o mesmo número de exemplos negativos
+    # eh necessario o mesmo numero de exemplos negativos
     group_names = list(img_groups.keys())
     for i in range(len(pos_triples)):
         g1, g2 = np.random.choice(np.arange(len(group_names)), size=2, replace=False)
@@ -73,7 +73,7 @@ def carregar_vetores(vector_file):
     return vec_dict
 
 #################################################################
-#                 pré-processamento dos dados                   #
+#                 pre-processamento dos dados                   #
 #################################################################
 
 def preprocessar_dados(vec_dict, triplas, train_size=0.8):
@@ -88,7 +88,7 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.8):
     return Xtrain, Xtest, ytrain, ytest
 
 #################################################################
-#                       validação cruzada                       #
+#                       validacao cruzada                       #
 #################################################################
 
 def validacao_cruzada(X, y, clf):    
@@ -98,7 +98,7 @@ def validacao_cruzada(X, y, clf):
     return clf, score
 
 #################################################################
-#                    Relatório de treino/test                   #
+#                    Relatorio de treino/test                   #
 #################################################################
 def test_report(clf, Xtest, ytest):
     ytest_ = clf.predict(Xtest)
@@ -134,7 +134,7 @@ NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
 start = time.time()
-step_start - time.time()
+step_start = time.time()
 lista_imagens = os.path.join(DATA_DIR, 'train_500.csv')
 logger.info("gerando triplas")
 image_triples = criar_triplas(lista_imagens)
