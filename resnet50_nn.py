@@ -76,7 +76,7 @@ def carregar_vetores(vector_file):
 #                 pré-processamento dos dados                   #
 #################################################################
 
-def preprocessar_dados(vec_dict, triplas, train_size=0.7):
+def preprocessar_dados(vec_dict, triplas, train_size=0.8):
     xdata, ydata = [], []
     i = 0
     tam = len(triplas)
@@ -131,7 +131,7 @@ def save_model(model, model_file):
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='logs/train_siamese.log',
+                    filename='logs/resnet50_nn.log',
                     filemode='w')
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -143,7 +143,7 @@ scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 start = time.time()
 
 step_start = time.time()
-lista_imagens = os.path.join(DATA_DIR, 'train_2014_50.csv')
+lista_imagens = os.path.join(DATA_DIR, 'train_2014_1k.csv')
 logger.info("gerando triplas")
 image_triples = criar_triplas(lista_imagens)
 step_elapsed = time.time() - step_start
@@ -167,7 +167,7 @@ step_elapsed = time.time() - step_start
 logger.info("pronto... %s em %s", scores, step_elapsed)
 
 test_report(best_clf, Xtest, ytest)
-save_model(best_clf, get_model_file(DATA_DIR, "resnet50", "xgb"))
+save_model(best_clf, get_model_file(DATA_DIR, "resnet50-nn", "xgb"))
 logger.info("modelo salvo")
 
 elapsed = time.time() - start
