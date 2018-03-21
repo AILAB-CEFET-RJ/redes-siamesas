@@ -166,15 +166,17 @@ logger.info("vetores carregados")
 image_triples = np.split(np.array(image_triples), NUM_THREADS)
 Xtrain, Xtest, ytrain, ytest = [],[],[],[]
 
-
-
 threads = []
 for i in range(0,len(image_triples)):
     logger.debug("thread %d iniciada", i)
-    t = threading.Thread(target=preprocessar_dados, args=(vec_dict, image_triples))    
+    t = threading.Thread(target=preprocessar_dados, args=(vec_dict, image_triples.to_list()))    
     threads.append(t)
     t.start()
-    t.join()
+
+logger.debug("Syncronizando as threads")
+
+for thread in threads:   
+   thread.join()
 
 logger.info("passando pelo classificador")
 step_start = time.time()
