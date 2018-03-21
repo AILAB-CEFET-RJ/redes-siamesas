@@ -4,6 +4,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 ###################################################################
 import time
+import threading
 import logging
 import itertools
 import numpy as np
@@ -17,6 +18,8 @@ from sklearn.externals import joblib
 
 DATA_DIR = os.environ["DATA_DIR"]
 IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
+
+
 
 #################################################################
 #                         Generate Triples                      #
@@ -35,12 +38,12 @@ def criar_triplas(lista_imagens):
             img_groups[gid] = [pid]
     
     pos_triples, neg_triples = [], []
-    #A triplas positivas são a combinação de imagens com a mesma categoria
+    #A triplas positivas sao a combinacao de imagens com a mesma categoria
     for key in img_groups.keys():
         triples = [(x[0], x[1], 1) 
                  for x in itertools.combinations(img_groups[key], 2)]
         pos_triples.extend(triples)
-    # é necessário o mesmo número de exemplos negativos
+    # eh necessario o mesmo numero de exemplos negativos
     group_names = list(img_groups.keys())
     for i in range(len(pos_triples)):
         g1, g2 = np.random.choice(np.arange(len(group_names)), size=2, replace=False)
@@ -73,7 +76,7 @@ def carregar_vetores(vector_file):
     return vec_dict
 
 #################################################################
-#                 pré-processamento dos dados                   #
+#                 pre-processamento dos dados                   #
 #################################################################
 
 def preprocessar_dados(vec_dict, triplas, train_size=0.7):
@@ -87,15 +90,19 @@ def preprocessar_dados(vec_dict, triplas, train_size=0.7):
         xdata.append(distance)
         ydata.append(image_triple[2])
         i = i + 1
-        if(i % 100 == 0):
+        if(i % 1000 == 0):
             logger.info("Processado %d de %d", i,  tam)
     X, y = np.array(xdata), np.array(ydata)
-    Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size)
-       
-    return Xtrain, Xtest, ytrain, ytest
+    _Xtrain, _Xtest, _ytrain, _ytest = train_test_split(X, y, train_size=train_size)
+    
+    Xtrain.extend(_Xtrain)
+    Xtest.extend(_Xtest)
+    ytrain.extend(_ytrain)
+    ytest.extend(_ytest)
+    
 
 #################################################################
-#                       validação cruzada                       #
+#                       validacao cruzada                       #
 #################################################################
 
 def validacao_cruzada(X, y, clf):    
@@ -105,7 +112,7 @@ def validacao_cruzada(X, y, clf):
     return clf, score
 
 #################################################################
-#                    Relatório de treino/test                   #
+#                    Relatorio de treino/test                   #
 #################################################################
 def test_report(clf, Xtest, ytest):
     ytest_ = clf.predict(Xtest)
@@ -129,12 +136,14 @@ def save_model(model, model_file):
 #################################################################
 
 logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    format='(%(threadName)-10s) %(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
                     filename='logs/train_siamese.log',
                     filemode='w')
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
+
+NUM_THREADS = 4
 
 NUM_VECTORIZERS = 5
 NUM_CLASSIFIERS = 4
@@ -150,12 +159,18 @@ step_elapsed = time.time() - step_start
 logger.info("pronto... %s triplas geradas em %s s", len(image_triples), step_elapsed)
 
 logger.info("pre-processando vetores de imagens...")
-step_start = time.time()
 VECTOR_FILE = os.path.join(DATA_DIR, "resnet-vectors.tsv")
 vec_dict = carregar_vetores(VECTOR_FILE)
-Xtrain, Xtest, ytrain, ytest = preprocessar_dados(vec_dict, image_triples)
-step_elapsed = time.time() - step_start
-logger.info("pronto...  vetores pre-processados em %s s", step_elapsed)
+
+image_triples = np.split(image_triples, NUM_THREADS)
+Xtrain, Xtest, ytrain, ytest = [],[],[],[]
+
+threads = []
+for i in range(0,len(image_triples)):
+    t = threading.Thread(target=preprocessar_dados, args=(vec_dict, image_triples))    
+    threads.append(t)
+    t.start()
+    t.join()
 
 logger.info("passando pelo classificador")
 step_start = time.time()
