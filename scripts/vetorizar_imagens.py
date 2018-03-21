@@ -61,7 +61,6 @@ VECTOR_FILE = os.path.join(DATA_DIR, "resnet-vectors.tsv")
 #################################################################
 #                       Inicio da Execucao                      #
 #################################################################
-xception_model = xception.Xception(weights="imagenet", include_top=True)
 
 resnet_model = resnet50.ResNet50(weights="imagenet", include_top=True)
 
