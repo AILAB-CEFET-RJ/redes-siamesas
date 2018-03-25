@@ -24,8 +24,9 @@ import logging
 from sklearn.utils import shuffle
 
 DATA_DIR = os.environ["DATA_DIR"]
-IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
-LOG_DIR = "/home/rsilva/logs/"
+VQA_DIR = os.path.join(DATA_DIR, "vqa")
+IMAGE_DIR = os.path.join(VQA_DIR,"mscoco")
+LOG_DIR = os.path.join(DATA_DIR,"logs")
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -184,7 +185,7 @@ model = Model(inputs=[imagem_esquerda, imagem_direita], outputs=pred)
 #model.summary()
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
-NUM_EPOCAS = 1 
+NUM_EPOCAS = 10 
 
 image_cache = {}
 lote_de_treinamento = gerar_triplas_em_lote(dados_treino, TAMANHO_LOTE, shuffle=True)
