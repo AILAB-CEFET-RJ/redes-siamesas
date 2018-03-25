@@ -1,3 +1,8 @@
 nohup.out
 models/
 .vscode/
+venv/
+logs/
+data/
+__pycache__
+*.pyc

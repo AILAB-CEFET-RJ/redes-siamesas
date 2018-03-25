@@ -1,14 +1,18 @@
 import os
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-#os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+import sys
 
 from keras import backend as K
-from keras.applications import vgg16
+from keras.applications import resnet50
 from keras.layers import Input, merge
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Activation, Dense, Dropout, Flatten, Lambda
 from keras.models import Sequential, Model
 from keras.utils import np_utils
+from keras.callbacks import CSVLogger, ModelCheckpoint
+
 from sklearn.model_selection import train_test_split
 from random import shuffle
 from scipy.misc import imresize
@@ -16,53 +20,73 @@ import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sys
+import logging
 from sklearn.utils import shuffle
 
-DATA_DIR = "/home/ramon/datasets/vqa/"
-IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
+DATA_DIR = os.environ["DATA_DIR"]
+VQA_DIR = os.path.join(DATA_DIR, "vqa")
+IMAGE_DIR = os.path.join(VQA_DIR,"mscoco")
+LOG_DIR = os.path.join(DATA_DIR,"logs")
 
-def imagem_aleatoria(img_groups, group_names, gid):
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename=os.path.join(LOG_DIR, 'vqa_resnet.log'),
+                    filemode='w')
+logger = logging.getLogger(__name__)
+
+def get_random_image(img_groups, group_names, gid):
     gname = group_names[gid]
     photos = img_groups[gname]
     pid = np.random.choice(np.arange(len(photos)), size=1)[0]
     pname = photos[pid]
-    #return "{}_{}.jpg".format(gname, pname)
     return pname
 
 def criar_triplas(image_dir):
-    data = pd.read_csv(os.path.join(DATA_DIR, 'train2014_500.csv'), sep=",", header=1, names=["img_id", "category_id", "filename"])
-    image_cache = {}
+    data = pd.read_csv(lista_imagens, sep=",", header=0, names=["image_id","filename","category_id"])
+    img_groups = {}
+    
     for index, row in data.iterrows():
-        id = row["img_id"]
-        if(id in image_cache):
-            image_cache[id]["categories"].append(row["category_id"])
+        pid = row["filename"]
+        gid = row["category_id"]
+        
+        if gid in img_groups:
+            img_groups[gid].append(pid)
         else:
-            image_cache[id] = {"img_id" : id, "filename" : row["filename"], "categories" : [row["category_id"]]}
-    #Triplas que serao retornadas
-    triplas = []
-
-    for index, row in image_cache.items():
-        for _i, _r in image_cache.items():
-            if index != _i:
-                _match = set(row["categories"]).intersection(_r["categories"])
-                if len(_match) > 0:
-                    #print(row["filename"], _r["filename"], "similares")
-                    triplas.append((row["filename"], _r["filename"], 1))
-                else:
-                    triplas.append((row["filename"], _r["filename"], 0))
-    return shuffle(triplas)
-
+            img_groups[gid] = [pid]
+    
+    pos_triples, neg_triples = [], []
+    #A triplas positivas sao a combinacao de imagens com a mesma categoria
+    for key in img_groups.keys():
+        triples = [(x[0], x[1], 1) 
+                 for x in itertools.combinations(img_groups[key], 2)]
+        pos_triples.extend(triples)
+    # e necessario o mesmo numero de exemplos negativos
+    group_names = list(img_groups.keys())
+    for i in range(len(pos_triples)):
+        g1, g2 = np.random.choice(np.arange(len(group_names)), size=2, replace=False)
+        left = get_random_image(img_groups, group_names, g1)
+        right = get_random_image(img_groups, group_names, g2)
+        neg_triples.append((left, right, 0))
+    pos_triples.extend(neg_triples)
+    shuffle(pos_triples)
+    return pos_triples 
 def carregar_imagem(image_name):
+    logging.debug("carragendo imagem : %s" % image_name)
     if image_name not in image_cache:
+        logging.debug("cache miss")
         image = plt.imread(os.path.join(IMAGE_DIR, image_name)).astype(np.float32)
         image = imresize(image, (224, 224))
         image = np.divide(image, 256)
         image_cache[image_name] = image
+    else:
+        logging.debug("cache hit")
     return image_cache[image_name]
 
 def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
+    logging.info("Gerando triplas")
     while True:
+        
         # loop once per epoch
         if shuffle:
             indices = np.random.permutation(np.arange(len(image_triples)))
@@ -70,6 +94,9 @@ def gerar_triplas_em_lote(image_triples, batch_size, shuffle=False):
             indices = np.arange(len(image_triples))
         shuffled_triples = [image_triples[ix] for ix in indices]
         num_batches = len(shuffled_triples) // batch_size
+      
+        logging.info("%s batches of %s generated" % (num_batches, batch_size))
+ 
         for bid in range(num_batches):
             # loop once per batch
             images_left, images_right, labels = [], [], []
@@ -104,7 +131,6 @@ def criar_instancia_rede_neural(entrada):
     seq.add(Conv2D(20, kernel_size=5, padding="same", input_shape=entrada))
     seq.add(Activation("relu"))
     seq.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-    
     # CONV => RELU => POOL
     seq.add(Conv2D(50, kernel_size=5, padding="same"))
     seq.add(Activation("relu"))
@@ -118,16 +144,15 @@ def criar_instancia_rede_neural(entrada):
 
 ####################### Inicio da Execucao #######################
 
-print("####################### Inicio da Execucao #######################")
+logger.info("####################### Inicio da Execucao #######################")
 
-print("Geran")
-triplas = criar_triplas(IMAGE_DIR)
+logging.info("Gerando triplas")
+lista_imagens = os.path.join(DATA_DIR, 'train_2014_50.csv')
+triplas = criar_triplas(lista_imagens)
 
-print("# triplas de imagens:", len(triplas))
-[print(x) for x in triplas[0:5]]
+logging.debug("# triplas de imagens: %d" % len(triplas))
 
-
-TAMANHO_LOTE = 64
+TAMANHO_LOTE = 64 
 
 divisor = int(len(triplas) * 0.7)
 dados_treino, dados_teste = triplas[0:divisor], triplas[divisor:]
@@ -140,8 +165,10 @@ rede_neural = criar_instancia_rede_neural(formato_entrada)
 imagem_esquerda = Input(shape=formato_entrada)
 imagem_direita  = Input(shape=formato_entrada)
 
-vetor_saida_esquerda = rede_neural(imagem_esquerda)
-vetor_saida_direita  = rede_neural(imagem_direita)
+model = resnet50.ResNet50(weights='imagenet', include_top=True)
+
+vetor_saida_esquerda = model(imagem_esquerda)
+vetor_saida_direita  = model(imagem_direita)
 
 distancia = Lambda(calcular_distancia, 
                 output_shape=formato_saida_distancia)([vetor_saida_esquerda, vetor_saida_direita])
@@ -158,7 +185,7 @@ model = Model(inputs=[imagem_esquerda, imagem_direita], outputs=pred)
 #model.summary()
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
-NUM_EPOCAS = 10
+NUM_EPOCAS = 10 
 
 image_cache = {}
 lote_de_treinamento = gerar_triplas_em_lote(dados_treino, TAMANHO_LOTE, shuffle=True)
@@ -167,18 +194,26 @@ lote_de_validacao = gerar_triplas_em_lote(dados_teste, TAMANHO_LOTE, shuffle=Fal
 num_passos_treinamento = len(dados_treino) // NUM_EPOCAS
 num_passos_validacao = len(dados_teste) // NUM_EPOCAS
 
+csv_logger = CSVLogger(os.path.join(LOG_DIR, 'training_epochs_resnet.log'))
+model_checkpoint = ModelCheckpoint("models/best.hdf", monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+
+callbacks_list = [csv_logger, model_checkpoint]
+
 historico = model.fit_generator(lote_de_treinamento,
                             steps_per_epoch=num_passos_treinamento,
                             epochs=NUM_EPOCAS,
                             validation_data=lote_de_validacao,
-                            validation_steps=num_passos_validacao)
+                            validation_steps=num_passos_validacao,
+                            callbacks=callbacks_list)
 
-print("Salvando o modelo em disco")
+logging.info("Salvando o modelo em disco")
 # serialize model to JSON
 model_json = model.to_json()
-with open("models/imagenet.json", "w") as json_file:
+with open("models/vqa.json", "w") as json_file:
     json_file.write(model_json)
 
 # serialize weights to HDF5
-model.save_weights("models/imagenet_weights.h5")
-print("Modelo salvo")
+model.save_weights("models/vqa_weights.h5")
+logging.info("Modelo salvo")
+
+logging.info("Finalizado")
