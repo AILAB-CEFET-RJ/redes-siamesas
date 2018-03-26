@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 from random import shuffle
 
-DATA_DIR="/media/ramon/dados/dataset/vqa"
+DATA_DIR = os.environ["DATA_DIR"]
+IMAGE_DIR = os.path.join(DATA_DIR,"mscoco")
 
 def get_random_image(img_groups, group_names, gid):
     gname = group_names[gid]
@@ -54,7 +55,7 @@ print("# triplas train:", len(triplas_imagens))
 [x for x in triplas_imagens[0:5]]
 
 df = pd.DataFrame(triplas_imagens, columns=['left','right','similar'])
-df.to_csv(os.path.join("../data", "triples_train.csv"))
+df.to_csv(os.path.join(DATA_DIR, "triples_train.csv"))
 print("Salvo")
 
 lista_imagens = os.path.join(DATA_DIR, 'val_2014.csv')
@@ -63,7 +64,7 @@ print("# triplas validation:", len(triplas_imagens))
 [x for x in triplas_imagens[0:5]]
 
 df = pd.DataFrame(triplas_imagens, columns=['left','right','similar'])
-df.to_csv(os.path.join("../data", "triples_val.csv"))
+df.to_csv(os.path.join(DATA_DIR, "triples_val.csv"))
 print("Salvo")
 
 print("Finzalizado com sucesso !!!")
