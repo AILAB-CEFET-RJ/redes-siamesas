@@ -221,7 +221,7 @@ NUM_CLASSIFIERS = 4
 scores = np.zeros((NUM_VECTORIZERS, NUM_CLASSIFIERS))
 
 
-TRIPLES_FILES = os.path.join("data/", "triples_train.csv")
+TRIPLES_FILES = os.path.join(DATA_DIR, "triples_train.csv")
 #lista_imagens = os.path.join(DATA_DIR, 'train_2014.csv')
 logger.info("Carregando triplas")
 image_triples = dados.carregar_triplas(TRIPLES_FILES)
