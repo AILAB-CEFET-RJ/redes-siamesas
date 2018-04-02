@@ -6,8 +6,8 @@ from PIL import Image
 
 
 DATA_DIR = "/home/rsilva/datasets/vqa/"
-IMAGE_DIR = os.path.join(DATA_DIR, "train2014")
-NEW_IMAGE_DIR = os.path.join(DATA_DIR, "mscoco")
+IMAGE_DIR = os.path.join(DATA_DIR, "val2014")
+NEW_IMAGE_DIR = os.path.join(DATA_DIR, "mscoco_val")
 
 i = 0
 for img_file in os.listdir(IMAGE_DIR):        

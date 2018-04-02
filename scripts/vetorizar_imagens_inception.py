@@ -64,9 +64,8 @@ VECTOR_FILE = os.path.join(DATA_DIR, "inception-vectors.tsv")
 #################################################################
 
 inception_model = inception_v3.InceptionV3(weights="imagenet", include_top=True)
-
 model = Model(input=inception_model.input,
-             output=inception_model.get_layer("flatten").output)
+             output=inception_model.get_layer("avg_pool").output)
 preprocessor = inception_v3.preprocess_input
 
 vectorize_images(IMAGE_DIR, IMAGE_SIZE, preprocessor, model, VECTOR_FILE)
