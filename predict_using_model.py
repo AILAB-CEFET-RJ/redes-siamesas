@@ -15,22 +15,20 @@ from utils import calc, dados
 
 DATA_DIR = os.environ["DATA_DIR"]
 
-LOGS_DIR = os.path.join(DATA_DIR, "predict_using_model.log")
-
 #################################################################
 #                       Configurando logger                     #
 #################################################################
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename=os.path.join(LOGS_DIR, '/predict_using_model.log'),
+                    filename='logs/predict_using_model.log',
                     filemode='w')
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 
 VQA_DIR = os.path.join(DATA_DIR, "vqa")
 VQA_IMAGES = os.path.join(VQA_DIR, "mscoco")
-MODELS_DIR = os.path.join(VQA_DIR, "models")
+MODELS_DIR = os.path.join(DATA_DIR, "models")
 
 IMAGENET_DIR = os.path.join(DATA_DIR, "imagenet")
 
@@ -61,13 +59,16 @@ candidate_image =  np.expand_dims(candidate_image, axis=0)
 
 logger.info("calculando distancia")
 distance = calc.euclidian_distance([original_image, candidate_image])
-logger.debug("distancia : %d", distance)
 
 logger.info("Carregando o classificador")
 
-clf = XGBClassifier(os.path.join(MODELS_DIR, ""))
-clf.load_model()
-is_similar = clf.predict(distance)
+clf = XGBClassifier()
+booster = Booster()
+booster.load_model('./model.xgb')
+clf._Booster = booster
 
+prediction = clf.predict(distance)
+
+logger.debug("Prediction %s", prediction)
 
 logger.info("Finalizado com sucesso !!!")
