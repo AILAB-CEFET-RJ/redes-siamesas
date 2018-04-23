@@ -3,7 +3,6 @@ import sys
 from PIL import Image
 import hashlib
 
-
 DATA_DIR = os.environ["DATA_DIR"]
 IMAGENET_DIR = os.path.join(DATA_DIR, "imagenet")
 IMAGE_DIR = os.path.join(IMAGENET_DIR, "images")
