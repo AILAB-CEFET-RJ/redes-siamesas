@@ -33,7 +33,7 @@ def insert_match(vqa_id, imagenet_id):
 
 
 ##################################################################################################################
-cnx = mysql.connector.connect(user='root', password='',
+cnx = mysql.connector.connect(user='root', password='secret',
                               host='127.0.0.1', port='3306',
                               database='imagenet')
 
