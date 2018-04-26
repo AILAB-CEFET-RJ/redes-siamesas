@@ -23,12 +23,10 @@ def insert_match(vqa_id, imagenet_id):
         cursor.execute(update_url, data)
     except mysql.connector.Error as err:
         print(err)
-        print("data", vqa_id, imagenet_id)
-        sys.exit() 
+        print("data", vqa_id, imagenet_id)        
     except mysql.connector.errors.DataError as err:
         print(err)
-        print("data",vqa_id, imagenet_id)
-        sys.exit()
+        print("data",vqa_id, imagenet_id)        
         
 
 
@@ -51,7 +49,7 @@ for predictions in os.listdir(PREDICTIONS_DIR):
         insert_match(vqa_id, imagenet_id)
 
         i += 1
-        if i % 1000 == 0:
+        if i % 10000 == 0:
             print(i, "linhas processadas")
     
     cnx.commit()
