@@ -5,10 +5,9 @@ import pandas as pd
 DATA_DIR = os.environ["DATA_DIR"]
 BBOXES_DIR = os.path.join(DATA_DIR, "bboxes_imagenet")
 
-
-cnx = mysql.connector.connect(user='root', password='secret',
-                              host='locahost', port='3306',
-                              database='imagenet')
+cnx = mysql.connector.connect(user='ramonsilva03', password='w2140p',
+                              host='mysql.ramonsilva.net', port='3306',
+                              database='ramonsilva03')
 
 cursor = cnx.cursor()
 
@@ -23,7 +22,7 @@ def save_data(data):
         y2 = data[i][5]
 
         try:
-            insert_query = "INSERT INTO bound_box (img_id, x1, x2, y1, y2, class) values (%s, %s, %s, %s, %s, %s)"
+            insert_query = "INSERT INTO bound_box (img_id, x1, x2, y1, y2, label) values (%s, %s, %s, %s, %s, %s)"
             insert_data = (filename, x1, x2, y1, y2, class_name)
             cursor.execute(insert_query, insert_data)
         except mysql.connector.Error as err:
