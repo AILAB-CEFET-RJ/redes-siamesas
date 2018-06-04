@@ -5,9 +5,9 @@ import pandas as pd
 DATA_DIR = os.environ["DATA_DIR"]
 BBOXES_DIR = os.path.join(DATA_DIR, "bboxes_imagenet")
 
-cnx = mysql.connector.connect(user='ramonsilva03', password='w2140p',
-                              host='mysql.ramonsilva.net', port='3306',
-                              database='ramonsilva03')
+cnx = mysql.connector.connect(user='root', password='',
+                              host='127.0.0.1', port='3306',
+                              database='imagenet')
 
 cursor = cnx.cursor()
 
