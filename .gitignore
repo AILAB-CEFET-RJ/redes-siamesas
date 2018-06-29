@@ -6,3 +6,4 @@ logs/
 data/
 __pycache__
 *.pyc
+.idea/
