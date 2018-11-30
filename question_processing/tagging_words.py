@@ -32,5 +32,5 @@ for index, row in data.iterrows():
 
 questions = pd.DataFrame(questions, columns=["question_id", "word", "tag"])
 
-questions.to_csv(os.path.join(DATA_DIR, "palavras.csv"), index=False)
+questions.to_csv(os.path.join(DATA_DIR, "palavras_other.csv"), index=False)
 print("Finalizado")

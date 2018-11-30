@@ -30,7 +30,7 @@ model.accuracy(WORDS_FILE)
 i = 1
 data = pd.read_csv( os.path.join(DATA_DIR, "palavras.csv"), sep=",", header=0, names=["question_id", "word", "tag"])
 for index, row in data.iterrows():    
-    if row["tag"] == "NN":
+    if row["tag"] != "NN":
         print("Processando", row["word"], "...")
         syns = model.most_similar(positive= [ row["word"] ])
         i = i + 1 

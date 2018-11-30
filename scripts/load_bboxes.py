@@ -7,7 +7,7 @@ BBOXES_DIR = os.path.join(DATA_DIR, "bboxes_imagenet")
 
 cnx = mysql.connector.connect(user='root', password='',
                               host='127.0.0.1', port='3306',
-                              database='imagenet')
+                              database='ramonsilva03')
 
 cursor = cnx.cursor()
 

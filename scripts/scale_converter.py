@@ -11,8 +11,8 @@ NEW_IMAGE_DIR = os.path.join(DATA_DIR, "mscoco_val")
 """
 
 DATA_DIR = os.environ["DATA_DIR"]
-IMAGE_DIR = os.path.join(DATA_DIR, "imagenet", "images")
-NEW_IMAGE_DIR = os.path.join(DATA_DIR, "imagenet", "convertido")
+IMAGE_DIR = os.path.join(DATA_DIR, "vqa", "mscoco")
+NEW_IMAGE_DIR = os.path.join(DATA_DIR, "vqa", "mscoco")
 
 i = 0
 for img_file in os.listdir(IMAGE_DIR):        
